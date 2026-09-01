@@ -1,0 +1,229 @@
+/* ==========================================================================
+   The Ultron Initiative — design tokens + type foundation (task B1)
+   --------------------------------------------------------------------------
+   World: Honor-Roll Wall (locked, .impeccable/surfaces/index-html.md key
+   4cf1bce5). Near-black ground, gunmetal plates, chrome engraved type,
+   crimson as the single active accent, scanline overlay.
+
+   LOADING: this file is linked BEFORE css/styles.css in index.html
+   (link-first, chosen over @import so both sheets fetch in parallel and
+   @font-face resolves without an import waterfall). styles.css stays
+   import-free; B2-B4 append component styles there.
+
+   TYPE (committed, docs/ultron/research/r1-typefaces.md — do not substitute):
+   - Cinzel 700        wordmark, nameplate titles, section headings
+   - Cinzel 900        monumental counter numerals (never below 600 — R1 risk)
+   - Martian Mono 400  readouts, tags, labels, FINISH line
+   - Martian Mono 700  active mode, readout emphasis
+   - EB Garamond 500   body paragraphs, plate one-liners (never 400 here —
+                       old-style hairlines die on near-black)
+
+   All faces are latin-subset OFL woff2, self-hosted in assets/fonts/
+   (licenses in assets/fonts/licenses/). Zero external requests: every
+   url() in this sheet is same-origin relative to css/.
+
+   CONTRAST (WCAG math logged in docs/ultron/production-log.md, B1):
+   - --chrome      on --ground 12.83:1, on --plate 10.43:1 (body AAA)
+   - --chrome-dim  on --ground  6.55:1, on --plate  5.32:1 (secondary AA)
+   - --crimson     on --ground  4.60:1, on --plate  3.74:1 (accent; body-
+                   size only on ground, large-text on plate)
+   ========================================================================== */
+
+:root {
+  /* --- Palette (pinned — do not retune) --------------------------------- */
+  --ground: #0b0d10;             /* page ground, near-black                */
+  --plate: #1d232b;              /* gunmetal plate fields                  */
+  --well: #12161c;               /* recessed wells inside plates (non-text)*/
+  --chrome: #c9d3dd;             /* primary engraved type                  */
+  --chrome-dim: #8b97a5;         /* secondary text (6.55:1 ground/5.32:1 plate) */
+  --crimson: #e5383b;            /* the single active accent               */
+
+  /* Hairline chrome rules and engraved edges (alpha over whatever field
+     they cross, so one value serves ground and plate).                    */
+  --rule-strong: rgba(201, 211, 221, 0.30);  /* hairline rules on ground   */
+  --rule-soft: rgba(201, 211, 221, 0.14);    /* dividers, plate inner rules*/
+  --rule-on-plate: rgba(201, 211, 221, 0.20);
+  --edge-dark: rgba(0, 0, 0, 0.60);          /* engraved upper-edge shadow */
+  --edge-light: rgba(201, 211, 221, 0.08);   /* engraved lower-edge catch  */
+
+  /* --- Engraved plate language (composable primitives for B2-B4) -------- */
+  --hairline: 1px;
+  /* Bevelled plaque edge: dark top lip, chrome catch light on the bottom. */
+  --plate-edge: inset 0 1px 0 rgba(0, 0, 0, 0.55),
+                inset 0 -1px 0 rgba(201, 211, 221, 0.07);
+  /* Lettering seated into the plate (pair with --chrome text on --plate). */
+  --engrave-text: 0 1px 0 rgba(0, 0, 0, 0.45);
+  /* Corner treatment: cut-plaque chamfer. NOTE: clip-path clips borders,
+     so the hairline frame is made by an outer element filled with the rule
+     color and an inner element inset by --hairline, both clipped.         */
+  --chamfer: 12px;
+  --corner-chamfer: polygon(
+    var(--chamfer) 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer),
+    100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%,
+    var(--chamfer) 100%, 0 calc(100% - var(--chamfer)), 0 var(--chamfer));
+
+  /* Crimson glow — the ONE active accent (hover raises glow, never motion-
+     heavy; B5 owns the animation). Committed-world effect, not decoration:
+     it marks the live/active state.                                       */
+  --glow-crimson-soft: 0 0 18px rgba(229, 56, 59, 0.22);
+  --glow-crimson-strong: 0 0 30px rgba(229, 56, 59, 0.38),
+                         0 0 6px rgba(229, 56, 59, 0.55);
+
+  /* --- Type families (fallbacks per R1) ---------------------------------- */
+  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-mono: "Martian Mono", ui-monospace, "Courier New", monospace;
+  --font-body: "EB Garamond", Georgia, serif;
+
+  /* --- Type scale ---------------------------------------------------------
+     --size-counter is deliberately monumental beyond the generic 6rem
+     display cap: the committed FIRST VIEWPORT contract calls for monumental
+     engraved numerals (memorable moment). Fluid via clamp.                */
+  --size-counter: clamp(3.5rem, 5.5vw + 2rem, 9rem);    /* Cinzel 900      */
+  --size-wordmark: clamp(2.25rem, 3.5vw + 1rem, 4.5rem);/* Cinzel 700      */
+  --size-section: clamp(1.75rem, 1.4rem + 1.2vw, 2.75rem);
+  --size-title: clamp(1.375rem, 1.125rem + 0.75vw, 1.875rem); /* nameplates */
+  --size-body: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);     /* Garamond   */
+  --size-readout: 0.8125rem;                            /* Martian Mono 400*/
+  --size-tag: 0.75rem;
+  --size-micro: 0.6875rem;                              /* tracked caps only*/
+
+  --leading-counter: 0.95;
+  --leading-tight: 1.15;
+  --leading-title: 1.2;
+  --leading-readout: 1.4;
+  --leading-body: 1.65;
+
+  /* Inscriptional caps get positive tracking; never negative on Cinzel.   */
+  --track-caps-wide: 0.14em;   /* wordmark, readouts set in uppercase       */
+  --track-caps: 0.08em;        /* nameplate titles, section headings        */
+  --track-readout: 0.06em;
+
+  --weight-heavy: 900;
+  --weight-bold: 700;
+  --weight-body: 500;
+  --weight-regular: 400;
+
+  /* Counter numerals: lining + tabular so the B5 count-up doesn't jitter  */
+  --numeric-tabular: lining-nums tabular-nums;
+
+  --measure: 68ch;             /* body measure, craft floor 65-75ch         */
+
+  /* --- Spacing scale (4px base; tight groups, generous separation) ------ */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --space-4xl: 8rem;
+  --gutter: clamp(1.25rem, 4vw, 3rem);        /* page gutter               */
+  --section-gap: clamp(4rem, 9vw + 1rem, 9rem); /* between monument blocks */
+
+  /* --- Scanline overlay ---------------------------------------------------
+     Committed-world texture (OWN-WORLD block). A fixed, non-interactive
+     pseudo-element paints 1px dark lines every 3px: visible as faint
+     machine-texture on the gunmetal plates, near-invisible on the ground,
+     never obscuring content. Static — no animation (B5 owns motion).      */
+  --scanline-period: 3px;
+  --scanline-ink: rgba(0, 0, 0, 0.22);
+  --scanline-z: 9999;
+}
+
+/* --- Vendored faces (OFL; upstream google/fonts, vendored via Fontsource
+       5.3.0 latin subsets — sources + dates in production-log.md B1). ------ */
+@font-face {
+  font-family: "Cinzel";
+  src: url("../assets/fonts/cinzel-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Cinzel";
+  src: url("../assets/fonts/cinzel-latin-900-normal.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Martian Mono";
+  src: url("../assets/fonts/martian-mono-latin-400-normal.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Martian Mono";
+  src: url("../assets/fonts/martian-mono-latin-700-normal.woff2")
+    format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "EB Garamond";
+  src: url("../assets/fonts/eb-garamond-latin-500-normal.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* --- Minimal base (everything B2 needs below the token layer) ----------- */
+html {
+  background: var(--ground); /* overscroll never flashes white */
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--chrome);
+  font-family: var(--font-body);
+  font-size: var(--size-body);
+  font-weight: var(--weight-body);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Browser-surface chrome, themed (craft floor): selection cuts a crimson
+   window into the metal rather than shipping the OS default. */
+::selection {
+  background: rgba(229, 56, 59, 0.35);
+  color: var(--chrome);
+}
+
+/* The scanline overlay. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--scanline-z);
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--scanline-period) - 1px),
+    var(--scanline-ink) calc(var(--scanline-period) - 1px),
+    var(--scanline-ink) var(--scanline-period)
+  );
+}

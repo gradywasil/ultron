@@ -1,0 +1,1160 @@
+/* ==========================================================================
+   The Ultron Initiative — main stylesheet.
+   B1 tokens + type live in css/tokens.css, linked BEFORE this file in
+   index.html (link-first, not @import — parallel fetch, no waterfall).
+   This file stays import-free; B2-B5 append component styles here.
+
+   --------------------------------------------------------------------------
+   B2 — FIRST VIEWPORT + B3 — NAMEPLATE WALL + B4 — ROSTER / FRIEZE /
+   FOOTER (this file's scope)
+   World: Honor-Roll Wall (locked, .impeccable/surfaces/index-html.md key
+   4cf1bce5). The first viewport is a monument wall, not a SaaS hero:
+
+     1. #hero  — chrome wordmark "THE ULTRON INITIATIVE" stamped across the
+                 top between engraved double hairlines (the lintel).
+     2. #stats — the monumental counter band: one full-bleed chamfered
+                 gunmetal plate, four counters, Cinzel 900 numerals, mono
+                 readout labels, hairline separators. data-count hooks are
+                 A3's and stay untouched (B5 animates them).
+     3. #wall  — the nameplate wall BEGINS in the first viewport: packed
+                 auto-fill grid on a shared backing field, hairline-ruled
+                 plates, engraved anatomy (title, one-liner, tags, links).
+                 A faint static crimson ember pools at each plate's base —
+                 the "first crimson-lit nameplates glinting at the fold
+                 line"; hover/keyboard focus RAISES the glow (strong token).
+                 Hover/focus states below are static; B5 wires their
+                 transitions in section 7.
+
+   Roster, frieze and footer are B4's builds, closing the styled page
+   top-to-bottom in the same language:
+
+     4. #roster — six dedications carved into ONE monumental chamfered
+        band (the counter-band technique): 3x2 at desktop, 2x3 at tablet,
+        one course at phone, hairline seams — never floating cards. Mode
+        chips use a GRADED accent system (deliberate, logged B4): lit
+        crimson diamonds mark the autonomous/deadline lines, hollow
+        crimson the bounded passes, plain dim chips the human-gated
+        lines — crimson stays the active accent, spent where the machine
+        acts.
+     5. #frieze — the lineage carved into the OPEN GROUND between the
+        roster plate and the footer plate (the frieze breathes larger
+        than the wall; the hairline spine IS the band): one full-width
+        rail, hollow chrome diamonds seated on it, six courses hung
+        below. Below 1180px it stands up into a vertical stele — one
+        strategy per range, fully executed, no scroll traps, zero page
+        overflow.
+     6. #footer — a full-bleed chamfered plate bookending the counter
+        band: attribution links in the wall's link anatomy (mono caps,
+        drawn hollow diamonds, 44px targets), sign-off under a short
+        centered rule. The page ends anchored on engraved metal.
+
+   NEW text pairs introduced by B3: none — SOURCE links moved to
+   --chrome-dim on --plate (5.32:1, logged at B1); LIVE links keep
+   --chrome on --plate (10.43:1). Non-text: crimson hover rule / glow /
+   diamonds on plate 3.74:1 and on ground 4.60:1 (both >= 3:1, WCAG
+   1.4.11). Earlier pairs reuse logged values (chrome/ground 12.83,
+   chrome/plate 10.43, chrome-dim/plate 5.32, chrome-dim/ground 6.55,
+   chrome-dim/well 6.11).
+
+   NEW text pairs introduced by B4: none — every pair reuses the logged
+   matrix. Dedication names chrome/plate 10.43:1; roles chrome-dim/plate
+   5.32:1; mode chips on --well (dim grade chrome-dim 6.11:1, marked/lit
+   grades chrome 11.96:1); frieze dates + lines chrome-dim/ground 6.55:1,
+   frieze titles chrome/ground 12.83:1; footer links chrome/plate
+   10.43:1, sign-off chrome-dim/plate 5.32:1. Non-text markers: solid
+   crimson chip diamonds on well 4.28:1, hollow dim-chrome diamonds on
+   plate 5.32:1 (footer), chrome-dim frieze nodes on ground 6.55:1 — all
+   >= 3:1 (WCAG 1.4.11). Chip FRAMES in alpha crimson are decorative
+   tint; the mode word + diamond carry the state.
+
+   ==========================================================================
+   B5 — MOTION SYSTEM (section 7 of this file + js/motion.js)
+   The page's ONE authored moment plus its registered glow states, all in
+   section 7 so the motion system is auditable in one place:
+
+     - COUNT-UP: the counter band counts up once on first view (driven by
+       js/motion.js over A3's data-count hooks; numbers change via
+       textContent ONLY — the .stat cells are fixed 1fr grid tracks, so no
+       layout property is ever animated). ∞ renders verbatim, no hook.
+     - GLOW: transitions on transform / box-shadow / background-color /
+       border-color / text-decoration-color / text-shadow ONLY — never a
+       layout property. Plate hover + footer-link underline are
+       intent-only (hover/focus); frieze node ignition (.is-lit) and the
+       roster band ignition (.is-ignited) are one-time, scroll-triggered
+       via IntersectionObserver in js/motion.js (60ms stagger steps).
+     - prefers-reduced-motion: the media query at the end of section 7
+       kills every transition (states snap, all final, fully readable)
+       and js/motion.js renders final values / final glow statically.
+   ==========================================================================
+
+   ==========================================================================
+   C1 — DEGRADED STATES (section 8 of this file + the <noscript> block in
+   index.html; js/motion.js and js/render.js untouched by C1)
+   The monument under failure, in the same engraved language:
+
+     - .noscript-notice — with scripting disabled the five mounts stay
+       empty mounts, so the UA renders C1's <noscript> band at the top of
+       <body>: a full-width gunmetal band, the machine naming the problem
+       and the recovery in sentence-case readout type (R3 dropped the caps
+       transform — long degraded passages in caps read as shouting) over
+       the marked hollow-crimson diamond. Never shown when JS runs.
+     - .empty-state — A3's degraded-mount element (<p class="empty-state"
+       role="status">, emitted for #stats/#wall/#frieze when their data is
+       empty/invalid): a quiet plate — hairline rule, raised bevel,
+       sentence-case readout type in --chrome-dim (R3, same finding) —
+       carrying the one-line message and
+       its recovery hint over the same marked diamond (the mode chips'
+       "marked" grade: the machine reports a bounded state, crimson stays
+       the active accent). Inside #stats the state is re-clipped to the
+       band's own chamfer and spans full width so the band frame never
+       shows a lit gap (the B3 lesson: rule-color background must never
+       peek out beside a plate).
+     - Link-less plates need no rule: render.js omits .plate-links
+       entirely when a build carries no usable url/sourceUrl, and the
+       plate column simply ends at its tags (verified by trigger in the
+       C1 harness; nothing to restyle).
+
+   NEW text pairs introduced by C1: none — .empty-state and
+   .noscript-notice reuse logged values (chrome-dim/plate 5.32:1,
+   chrome/plate 10.43:1). Non-text: the hollow crimson marker on plate
+   3.74:1 (>= 3:1, WCAG 1.4.11; the mode chips' marked diamond 4.28:1 on
+   well already logged at B4 — same accent, same geometry).
+   ==========================================================================
+
+   ==========================================================================
+   D1 — SEMANTICS + KEYBOARD (section 9 of this file; index.html landmark
+   restructure + js/render.js heading system)
+   The monument navigates non-visually (DAREDEVIL lens):
+
+     - LANDMARKS (index.html): the wordmark stamp is the page BANNER
+       (body-level <header id="hero>", moved out of <main> — styles are
+       id-based, unchanged); <main> holds the monument (counter band, wall,
+       dedications, frieze); <footer> is the contentinfo. No nav landmark:
+       A1 created no nav (single page, no anchor links) and none is added.
+     - OUTLINE (js/render.js): one h1 (the wordmark) -> one visually-hidden
+       h2 per section (.section-heading, rendered by the pipeline) -> h3 per
+       item (plate / dedication / milestone titles, demoted from A3's
+       pending h2s). The headings are invisible (section 9) — structure
+       without adding visual chrome.
+     - SKIP LINK (.skip-link): the page's FIRST focusable element, hidden
+       until focused, then a small ground plate — chrome mono caps on
+       near-black with the global crimson :focus-visible ring — jumping to
+       #wall (tabindex="-1" programmatic target, its section outline
+       suppressed).
+
+   NEW text pairs introduced by D1: none — the skip link reuses
+   chrome/ground 12.83:1 (logged B1); the visually-hidden headings render
+   no pixels. Focus ring unchanged from B2's global rule (crimson, 3.74:1
+   on plate / 4.60:1 on ground — both >= 3:1, WCAG 1.4.11).
+   ========================================================================== */
+
+/* --- Browser-surface chrome (craft floor: the parts you did not draw still
+   carry the design). Dark form/scrollbar surfaces + world scrollbars. ---- */
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scrollbar-color: var(--plate) var(--ground);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ground);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--plate);
+  border: 1px solid var(--rule-soft);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #232a34; /* --plate lifted one step; scroll affordance only */
+}
+
+/* Keyboard focus: one crimson ring everywhere (crimson on ground 4.60:1,
+   on plate 3.74:1 — both above the 3:1 non-text minimum). */
+:focus-visible {
+  outline: 2px solid var(--crimson);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   1. HERO — the wordmark stamp (lintel of the monument)
+   ========================================================================== */
+
+#hero {
+  padding: var(--space-lg) var(--gutter) var(--space-md);
+  text-align: center;
+}
+
+/* Engraved double hairlines above and below the stamp — the lintel rules.
+   Pseudo-elements so index.html stays a pure mount. */
+#hero::before,
+#hero::after {
+  content: "";
+  display: block;
+  height: 5px; /* 1px rule + 3px gap + 1px rule */
+  border-top: var(--hairline) solid var(--rule-strong);
+  border-bottom: var(--hairline) solid var(--rule-soft);
+}
+#hero::before {
+  margin-bottom: var(--space-sm);
+}
+#hero::after {
+  margin-top: var(--space-sm);
+}
+
+.hero-wordmark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-wordmark);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome);
+  text-wrap: balance;
+  /* Stamped chrome: a dark seat below the lettering, plus one very faint
+     chrome catch so the metal reads lit, not flat. Derived alphas of the
+     pinned chrome only — no gradient text, no off-world color. */
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.55),
+    0 0 28px rgba(201, 211, 221, 0.14);
+}
+
+/* R2 ($impeccable clarify): the one plain-language line under the stamp —
+   what the family is, spoken in the readout voice the counter band below
+   already uses (Martian Mono 400, tracked caps, --chrome-dim). A quiet
+   caption: text insertion only, the FIRST VIEWPORT composition (wordmark /
+   counter band / plates at the fold) is untouched. New text pair reuses the
+   logged matrix — chrome-dim on ground 6.55:1 (B1 arithmetic). */
+.hero-category {
+  margin: var(--space-sm) 0 0;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-readout);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 6.55:1 on ground — B1 arithmetic */
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   2. COUNTER BAND — the monumental band beneath the wordmark
+   --------------------------------------------------------------------------
+   One full-bleed engraved plate. Chamfer + hairline frame via the tokens'
+   outer-fill/inner-inset technique: #stats paints the rule color and is
+   clipped; .stats-band sits 1px inside with its own clip, so the visible
+   frame is a 1px chrome hairline that follows the cut corners.
+   ========================================================================== */
+
+#stats {
+  margin-top: var(--space-sm);
+  padding: var(--hairline);
+  background: var(--rule-strong);
+  clip-path: var(--corner-chamfer);
+}
+
+.stats-band {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--plate);
+  clip-path: var(--corner-chamfer);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.stat {
+  min-width: 0; /* long mono labels may never widen a track */
+  padding: var(--space-md) var(--space-sm) var(--space-lg);
+  text-align: center;
+  border-left: var(--hairline) solid var(--rule-soft);
+}
+.stat:first-child {
+  border-left: 0;
+}
+
+.stat-value {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: var(--weight-heavy);
+  font-size: var(--size-counter);
+  line-height: var(--leading-counter);
+  color: var(--chrome);
+  font-variant-numeric: var(--numeric-tabular);
+  text-shadow: var(--engrave-text);
+}
+
+.stat-label {
+  display: block;
+  margin-top: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim);
+}
+
+/* ==========================================================================
+   3. THE WALL — the nameplate wall (finished by task B3)
+   --------------------------------------------------------------------------
+   Packed wall, finished per B3: .wall-grid is one monument surface — a
+   recessed --well backing field with mounting joints from the spacing
+   scale — and each plate carries a hairline chrome rule, so plates are
+   separated by rules over a shared field, never floating cards.
+   auto-fill / minmax(280px) packs edge-to-edge and repacks 4 -> 2 -> 1
+   columns with zero masonry gaps; 13 is prime, so the final row leaves
+   bare backing wall visible — an honor roll with room to grow, not a
+   hole (the earlier 1px chrome mortar read as a lit patch there, since
+   empty cells painted LIGHTER than the plates).
+   ========================================================================== */
+
+#wall {
+  margin: var(--space-lg) var(--gutter) 0;
+}
+
+.wall-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-3xs); /* mounting joints between plates */
+  padding: var(--space-3xs); /* joint frame around the field */
+  background: var(--well); /* the shared backing field of the monument */
+}
+
+.plate {
+  position: relative;
+  container: plate / inline-size; /* titles size against the plate, not vw */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--plate);
+  /* Raised-plate bevel (lit top lip, dark base) + hairline chrome rule +
+     the static crimson ember pooled at the base — the glint the FIRST
+     VIEWPORT contract asks for at the fold line. The rule is the B3
+     mortar line: plates are separated by rules over the shared backing
+     field, never floating cards. */
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px var(--rule-soft),
+    inset 0 -20px 30px -22px rgba(229, 56, 59, 0.55);
+}
+
+/* Hover / keyboard presence RAISES the glow (surface brief: "hover raises
+   glow"): the chrome rule turns crimson, the base ember deepens, and the
+   outer glow lifts to the strong token. The 1px lift is a static state
+   change (translate only, never scale). The z-index lift lets the outer
+   glow read over neighboring plates.
+   B5 wired: the transform + box-shadow transition lives in section 7
+   (no layout properties; prefers-reduced-motion snaps it). */
+.plate:hover,
+.plate:focus-within {
+  z-index: 1;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(229, 56, 59, 0.5),
+    inset 0 -28px 44px -26px rgba(229, 56, 59, 0.62),
+    var(--glow-crimson-strong);
+}
+
+.plate-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  /* B3 wall fix: the wall packs MORE columns as the viewport WIDENS
+     (auto-fill), so plates get narrower while a vw-based title would keep
+     growing — measured overflow at 1280/1440/1600/1920 ("THE DIGITAL
+     HARMONOGRAPH": Cinzel 700 caps + tracking = 10.6em, the wall's widest
+     word). The title therefore scales against the plate itself (cqi),
+     clamped to the same 1.375-1.875rem span as --size-title at the widths
+     where plates are wide, with a 21px floor for the narrowest tracks.
+     Slope chosen from measured word metrics: 9cqi - 4.5px keeps the
+     longest word inside the inner edge at every packed column count
+     (fit limit (plate-48px)/10.6). Fallback (no container-query support):
+     the var(--size-title) declaration above still applies. */
+  font-size: var(--size-title);
+  font-size: clamp(1.3125rem, 9cqi - 0.28125rem, 1.875rem);
+  line-height: var(--leading-title);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--chrome);
+  text-wrap: balance;
+  text-shadow: var(--engrave-text);
+}
+
+.plate-description {
+  margin: 0;
+  color: var(--chrome-dim); /* 5.32:1 on plate — B1 arithmetic */
+  text-wrap: pretty;
+}
+
+.plate-tags {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs);
+}
+
+.plate-tag {
+  padding: 0.125rem 0.5rem;
+  background: var(--well);
+  border: var(--hairline) solid var(--rule-on-plate);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-tag);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 6.11:1 on well — B2 arithmetic, log entry */
+}
+
+/* Links row: seated behind a hairline base rule, pinned to the plate foot
+   so rows of plates share one datum line. The links carry their own
+   height (44px tap targets, B3) with centered content, so the rule sits
+   a clean half-gap above the labels. */
+.plate-links {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-md);
+  border-top: var(--hairline) solid var(--rule-on-plate);
+}
+
+.plate-link {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px; /* tap-target floor (B3 validation criterion) */
+  gap: var(--space-3xs);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome); /* 10.43:1 on plate */
+  text-decoration: none;
+}
+
+/* Link markers are drawn geometry (the world's icon system): LIVE carries
+   the lit crimson diamond — the per-plate glint, the only active marker;
+   SOURCE a hollow dim-chrome one (inert/secondary, 5.32:1 on plate). */
+.plate-link::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+}
+.plate-link-live::before {
+  background: var(--crimson);
+  box-shadow: 0 0 6px rgba(229, 56, 59, 0.65);
+}
+.plate-link-source {
+  color: var(--chrome-dim); /* 5.32:1 on plate — secondary by design */
+}
+.plate-link-source::before {
+  border: var(--hairline) solid var(--chrome-dim);
+}
+
+.plate-link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--crimson);
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 4px;
+}
+.plate-link-source:hover {
+  color: var(--chrome); /* the inert link wakes under intent */
+}
+
+.plate-link:active {
+  text-shadow: 0 0 10px rgba(229, 56, 59, 0.55);
+}
+
+/* ==========================================================================
+   4. ROSTER — the dedication band (finished by task B4)
+   --------------------------------------------------------------------------
+   Six dedications carved into ONE monumental band — the counter band's own
+   technique: #roster paints the rule color and is clipped; .roster-band
+   sits 1px inside with its own clip, so the 1px chrome hairline frame
+   follows the cut corners. Inside, hairline seams (never floating cards)
+   divide the band: 3 x 2 at desktop, 2 x 3 at tablet, one course at phone.
+
+   MODE CHIPS — a graded accent system (deliberate, logged B4). Crimson is
+   the ACTIVE accent, so it marks how much machine acts, mirroring the
+   wall's link language (lit crimson LIVE diamond vs dim hollow SOURCE):
+     lit    autonomous / deadline — filled crimson diamond + glow, crimson
+            frame, full-chrome bold text: the machine acts alone.
+     marked redesign / finishing — hollow crimson diamond, faint crimson
+            frame, chrome text: the machine runs a bounded pass.
+     dim    gated / delegated — no diamond, plain well chip, dim chrome:
+            the human holds the gate.
+   Chip FRAMES in alpha crimson are decorative tint (the mode word + the
+   solid diamond carry the state — 4.28:1 on well, non-text).
+   ========================================================================== */
+
+#roster {
+  margin: var(--section-gap) var(--gutter) 0;
+  padding: var(--hairline);
+  background: var(--rule-strong);
+  clip-path: var(--corner-chamfer);
+}
+
+.roster-band {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  background: var(--plate);
+  clip-path: var(--corner-chamfer);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.dedication {
+  container: dedication / inline-size; /* names size against the cell */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: var(--space-md) var(--space-md) var(--space-lg);
+}
+
+/* Hairline seams follow the live grid geometry. Every rule is scoped under
+   .roster-band so each breakpoint's reset meets the base selectors at equal
+   specificity and wins by source order (see the media queries below). */
+.roster-band .dedication {
+  border-left: 0;
+  border-top: 0;
+}
+.roster-band .dedication:nth-child(3n + 2),
+.roster-band .dedication:nth-child(3n + 3) {
+  border-left: var(--hairline) solid var(--rule-soft);
+}
+.roster-band .dedication:nth-child(n + 4) {
+  border-top: var(--hairline) solid var(--rule-soft);
+}
+
+.dedication-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  /* The band packs MORE columns as the viewport widens, so — like the
+     wall's titles — names scale against the cell (cqi). Ceiling 1.625rem
+     keeps the longest name ("ULTRON IMPECCABLE", ~14.5em at caps +
+     tracking) on one line in a 3-column cell; below ~640px it wraps
+     balanced instead of shrinking past legibility. Fallback (no
+     container-query support): var(--size-title). */
+  font-size: var(--size-title);
+  font-size: clamp(1.125rem, 5.6cqi + 0.225rem, 1.625rem);
+  line-height: var(--leading-title);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--chrome); /* 10.43:1 on plate — B1 arithmetic */
+  text-wrap: balance;
+  text-shadow: var(--engrave-text);
+}
+
+.dedication-role {
+  margin: var(--space-2xs) 0 0;
+  color: var(--chrome-dim); /* 5.32:1 on plate — B1 arithmetic */
+  text-wrap: pretty;
+}
+
+.dedication-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  margin: var(--space-xs) 0 0;
+  padding: 0.25rem 0.625rem;
+  background: var(--well);
+  border: var(--hairline) solid var(--rule-on-plate);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-tag);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 6.11:1 on well — B2 arithmetic */
+}
+.dedication-mode::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+}
+
+/* marked — the machine runs a bounded pass (redesign / finishing) */
+.dedication-mode[data-mode="redesign"],
+.dedication-mode[data-mode="finishing"] {
+  border-color: rgba(229, 56, 59, 0.35);
+  color: var(--chrome); /* 11.96:1 on well — B2 arithmetic */
+}
+.dedication-mode[data-mode="redesign"]::before,
+.dedication-mode[data-mode="finishing"]::before {
+  border: var(--hairline) solid var(--crimson); /* 4.28:1 on well (non-text) */
+}
+
+/* lit — the machine acts alone (autonomous / deadline) */
+.dedication-mode[data-mode="autonomous"],
+.dedication-mode[data-mode="deadline"] {
+  border-color: rgba(229, 56, 59, 0.6);
+  color: var(--chrome);
+  font-weight: var(--weight-bold);
+}
+.dedication-mode[data-mode="autonomous"]::before,
+.dedication-mode[data-mode="deadline"]::before {
+  background: var(--crimson); /* 4.28:1 on well (non-text) */
+  box-shadow: 0 0 6px rgba(229, 56, 59, 0.65); /* B5 wired: raised once at band ignition (section 7) */
+}
+
+/* dim — the human holds the gate (gated / delegated): the plain chip
+   above with the marker removed. */
+.dedication-mode[data-mode="gated"]::before,
+.dedication-mode[data-mode="delegated"]::before {
+  content: none;
+}
+
+/* --- Dedication band repacks (seams follow the new geometry) ------------- */
+
+@media (max-width: 900px) {
+  .roster-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .roster-band .dedication,
+  .roster-band .dedication:nth-child(3n + 2),
+  .roster-band .dedication:nth-child(3n + 3),
+  .roster-band .dedication:nth-child(n + 4) {
+    border-left: 0;
+    border-top: var(--hairline) solid var(--rule-soft);
+  }
+  .roster-band .dedication:first-child {
+    border-top: 0;
+  }
+  .roster-band .dedication:nth-child(even) {
+    border-left: var(--hairline) solid var(--rule-soft);
+  }
+}
+
+@media (max-width: 560px) {
+  .roster-band {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .roster-band .dedication {
+    padding: var(--space-md) var(--space-sm) var(--space-lg);
+  }
+  .roster-band .dedication,
+  .roster-band .dedication:nth-child(even),
+  .roster-band .dedication:nth-child(3n + 2),
+  .roster-band .dedication:nth-child(3n + 3),
+  .roster-band .dedication:nth-child(n + 4) {
+    border-left: 0;
+    border-top: var(--hairline) solid var(--rule-soft);
+  }
+  .roster-band .dedication:first-child {
+    border-top: 0;
+  }
+}
+
+/* ==========================================================================
+   5. LINEAGE FRIEZE — the carved timeline (finished by task B4)
+   --------------------------------------------------------------------------
+   Open carved band between the roster plate and the footer plate: the
+   lineage is cut into the ground itself — no plate around it, the hairline
+   spine IS the band. Scroll pacing: the frieze breathes larger than the
+   wall above it, on the same token rhythm (--section-gap margins).
+
+   Desktop (>= 1180px): one horizontal frieze — six courses hung from a
+   full-width hairline rail, a hollow chrome diamond seated on the rail at
+   each course's left edge, ordinal/date above the rail, title + line
+   below. Below 1180px the same frieze stands up into a vertical stele:
+   left-hand rail, one course per milestone. One strategy per range, fully
+   executed — no scroll traps, zero page overflow at any width.
+   ========================================================================== */
+
+#frieze {
+  margin: var(--section-gap) var(--gutter);
+}
+
+.frieze-line {
+  --spine-y: 2.125rem; /* date line (1.25rem) + gap + half node */
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: var(--space-md);
+}
+
+/* The carved spine: one hairline across the whole band. */
+.frieze-line::before {
+  content: "";
+  position: absolute;
+  top: var(--spine-y);
+  left: 0;
+  right: 0;
+  border-top: var(--hairline) solid var(--rule-strong);
+}
+
+.milestone {
+  container: milestone / inline-size; /* titles size against the course */
+  position: relative;
+  min-width: 0;
+}
+
+/* Node: a hollow chrome diamond seated on the rail; the ground fill masks
+   the hairline behind it, so the diamond reads carved, not stuck on.
+   B5 wired: node ignition — the diamonds light crimson in lineage order
+   on first view (js/motion.js IntersectionObserver + .is-lit state and
+   its transition in section 7; reduced-motion renders them lit,
+   statically). */
+.milestone::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(var(--spine-y) - 0.34375rem); /* center the 11px box on the rail */
+  width: 9px;
+  height: 9px;
+  background: var(--ground);
+  border: var(--hairline) solid var(--chrome-dim); /* 6.55:1 on ground */
+  transform: rotate(45deg);
+}
+
+.milestone-date {
+  display: block;
+  height: 1.25rem;
+  line-height: 1.25rem;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-micro);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 6.55:1 on ground — B1 arithmetic */
+  white-space: nowrap;
+}
+
+.milestone-title {
+  /* Cleared past the node below the rail: rail y + one gap, minus the
+     date line the margin starts after. */
+  margin: calc(var(--spine-y) - 1.25rem + var(--space-xs)) 0 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  /* Six packed courses narrow as the viewport widens, so — like the
+     wall's and band's titles — size against the course (cqi). Floor
+     1.0625rem keeps the widest word ("IMPECCABLE", ~8.8em caps+tracking)
+     inside the narrowest 1180px course. Fallback: the vw clamp. */
+  font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  font-size: clamp(1.0625rem, 11cqi - 0.28125rem, 1.25rem);
+  line-height: var(--leading-title);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--chrome); /* 12.83:1 on ground — B1 arithmetic */
+  text-wrap: balance;
+  text-shadow: var(--engrave-text);
+}
+
+.milestone-line {
+  margin: var(--space-2xs) 0 0;
+  color: var(--chrome-dim); /* 6.55:1 on ground — B1 arithmetic */
+  text-wrap: pretty;
+}
+
+/* --- Vertical stele: below 1180px the frieze stands up -------------------- */
+
+@media (max-width: 1179.98px) {
+  .frieze-line {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-lg);
+  }
+  .frieze-line::before {
+    content: none; /* the rail becomes per-course segments below */
+  }
+  .milestone {
+    padding-left: var(--space-lg);
+  }
+  .milestone::before {
+    left: 0;
+    top: 0.3125rem; /* the node rides at each course's top-left */
+  }
+  /* Each course carves the rail down to the next node; the last course
+     ends the lineage. */
+  .milestone::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 1.125rem;
+    bottom: calc(-1 * var(--space-lg) - 0.3125rem);
+    border-left: var(--hairline) solid var(--rule-strong);
+  }
+  .milestone:last-child::after {
+    content: none;
+  }
+  .milestone-date {
+    height: auto;
+    line-height: var(--leading-readout);
+  }
+  .milestone-title {
+    margin-top: var(--space-xs);
+  }
+}
+
+/* ==========================================================================
+   6. FOOTER PLATE — the close (finished by task B4)
+   --------------------------------------------------------------------------
+   Full-bleed chamfered plate, bookending the counter band that opens the
+   page: the monument ends on engraved metal, not a bare link row. The two
+   attribution links carry the wall's link anatomy (mono caps, drawn
+   diamond, 44px tap target, focus-visible ring from the global rule);
+   the sign-off sits under a short centered rule like plaque furniture.
+   ========================================================================== */
+
+#footer {
+  margin-top: var(--section-gap);
+  padding: var(--hairline);
+  background: var(--rule-strong);
+  clip-path: var(--corner-chamfer);
+}
+
+.footer-plate {
+  padding: var(--space-xl) var(--gutter) var(--space-lg);
+  background: var(--plate);
+  clip-path: var(--corner-chamfer);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: var(--space-xl);
+  row-gap: 0;
+  margin: 0;
+}
+
+.footer-link {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px; /* tap-target floor (B3 convention) */
+  gap: var(--space-3xs);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome); /* 10.43:1 on plate — B1 arithmetic */
+  text-decoration: none;
+}
+/* Attribution diamonds use the inert hollow marker (the SOURCE
+   convention): these links leave the monument, so they are not the
+   active accent. */
+.footer-link::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border: var(--hairline) solid var(--chrome-dim); /* 5.32:1 on plate */
+  transform: rotate(45deg);
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--crimson);
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 4px;
+} /* B5 wired: the underline draws in + a soft glow lands in section 7 */
+
+.footer-link:active {
+  text-shadow: 0 0 10px rgba(229, 56, 59, 0.55);
+}
+
+.footer-line {
+  margin: var(--space-sm) 0 0;
+  color: var(--chrome-dim); /* 5.32:1 on plate — B1 arithmetic */
+}
+/* Short centered rule above the sign-off — engraved plaque furniture. */
+.footer-line::before {
+  content: "";
+  display: block;
+  width: 3rem;
+  margin: 0 auto var(--space-sm);
+  border-top: var(--hairline) solid var(--rule-on-plate);
+}
+
+/* ==========================================================================
+   First-viewport composition breakpoints
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  /* Counter band stacks 2x2; hairline seams follow the new geometry. */
+  .stats-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stat {
+    border-left: 0;
+  }
+  .stat:nth-child(even) {
+    border-left: var(--hairline) solid var(--rule-soft);
+  }
+  .stat:nth-child(n + 3) {
+    border-top: var(--hairline) solid var(--rule-soft);
+  }
+}
+
+@media (max-width: 480px) {
+  .stat {
+    padding: var(--space-sm) var(--space-2xs) var(--space-md);
+  }
+  .stat-label {
+    font-size: var(--size-micro);
+  }
+}
+
+/* ==========================================================================
+   7. MOTION — B5's entire stylesheet contribution (see header, B5 block)
+   --------------------------------------------------------------------------
+   Budget: transitions on transform / box-shadow / background-color /
+   border-color / text-decoration-color / text-shadow ONLY — never a layout
+   property (no width / height / margin / top / left / padding / font-size
+   animation anywhere). The count-up changes text via textContent (fixed
+   1fr grid tracks — no reflow). Durations are short and decelerating;
+   glow transitions fire on intent (hover/focus) or once, on ignition.
+   prefers-reduced-motion (media query at the end of this section) snaps
+   every state instantly; js/motion.js additionally renders final values
+   and final glow statically under the same preference.
+   ========================================================================== */
+
+/* Plate hover / keyboard focus: raise the glow + the 1px lift. Intent-only
+   (fires on :hover / :focus-within, never on scroll). */
+.plate {
+  transition: transform 0.15s ease-out,
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Frieze node ignition: hollow chrome-dim -> lit crimson, once, in
+   lineage order (the .is-lit class comes from js/motion.js, staggered
+   60ms per node as they enter the viewport). Paint-only properties:
+   background-color / border-color / box-shadow on a fixed 9px box. */
+.milestone::before {
+  transition: background-color 0.35s ease-out,
+    border-color 0.35s ease-out,
+    box-shadow 0.35s ease-out;
+}
+.milestone.is-lit::before {
+  background: var(--crimson); /* 4.60:1 on ground (non-text) — logged B1 */
+  border-color: var(--crimson);
+  box-shadow: 0 0 6px rgba(229, 56, 59, 0.65);
+}
+
+/* Roster band ignition: the lit mode diamonds (autonomous / deadline)
+   raise their glow once when the band first enters view (.is-ignited
+   from js/motion.js). Rest state is exactly B4's verified glow; the
+   raised state is a decorative bloom (the solid diamond + mode word
+   carry the state). The 60ms step between the two lit chips is a
+   transition-delay — it applies only to this one-time class flip. */
+.dedication-mode[data-mode="autonomous"]::before,
+.dedication-mode[data-mode="deadline"]::before {
+  transition: box-shadow 0.4s ease-out;
+}
+.dedication-mode[data-mode="deadline"]::before {
+  transition-delay: 60ms;
+}
+.roster-band.is-ignited .dedication-mode[data-mode="autonomous"]::before,
+.roster-band.is-ignited .dedication-mode[data-mode="deadline"]::before {
+  box-shadow: 0 0 10px rgba(229, 56, 59, 0.8);
+}
+
+/* Footer attribution links: the crimson underline draws in on intent and
+   a soft glow blooms behind the lettering. The base rule below paints an
+   underline in transparent crimson so text-decoration-color (a paint
+   property) can animate — the resting render is pixel-identical to B4's. */
+.footer-link {
+  text-decoration-line: underline;
+  text-decoration-color: rgba(229, 56, 59, 0);
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease-out,
+    text-shadow 0.25s ease-out;
+}
+.footer-link:hover {
+  text-shadow: 0 0 10px rgba(229, 56, 59, 0.4);
+}
+
+/* --- prefers-reduced-motion: the hard kill switch -------------------------
+   Every B5 transition off; states snap to their final, static, fully
+   readable values. Placed last so it wins the cascade over every
+   declaration above at equal specificity. js/motion.js mirrors this in
+   JS (final counter values, ignition classes applied synchronously). */
+@media (prefers-reduced-motion: reduce) {
+  .plate,
+  .milestone::before,
+  .dedication-mode[data-mode="autonomous"]::before,
+  .dedication-mode[data-mode="deadline"]::before,
+  .footer-link {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   8. DEGRADED STATES — the monument under failure (task C1; see the C1
+   header block for the full language). Section 7 stays motion's; C1 appends
+   after it — these selectors share no properties with section 7, so the
+   cascade order is neutral.
+   ========================================================================== */
+
+/* The machine speaks when it cannot run: the <noscript> band at the top of
+   <body> (index.html). Full-width gunmetal band closing on a hairline rule;
+   readout type in full chrome, set sentence-case — a passage this long in
+   caps reads as shouting (R3 $impeccable polish, the critique's
+   all-caps-body finding; the Inscriptional Caps Rule keeps every short
+   label, this long degraded passage alone loses it). This message is the
+   whole page when it shows, so it takes the primary voice, not the dim
+   one. */
+.noscript-notice {
+  margin: 0;
+  padding: var(--space-sm) var(--gutter);
+  background: var(--plate);
+  border-bottom: var(--hairline) solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-readout);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-readout);
+  text-align: center;
+  color: var(--chrome); /* 10.43:1 on plate — logged B1 */
+}
+
+/* A quiet plate for an empty mount: hairline rule + raised bevel (the
+   .plate convention), readout type in the dim secondary voice, sentence-
+   case (same R3 all-caps-body finding as the noscript band above),
+   centered, held to the body measure so the message never runs
+   wall-to-wall. The marked hollow-crimson diamond (the mode chips'
+   "marked" grade) seats above the line: the machine reporting a bounded
+   state. */
+.empty-state {
+  max-width: 68ch; /* --measure; a degraded state stays quiet */
+  margin: 0 auto;
+  padding: var(--space-md);
+  background: var(--plate);
+  border: var(--hairline) solid var(--rule-soft);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-readout);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-readout);
+  text-align: center;
+  color: var(--chrome-dim); /* 5.32:1 on plate — logged B1 */
+}
+
+.empty-state::before,
+.noscript-notice::before {
+  content: "";
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin: 0 auto var(--space-2xs);
+  border: var(--hairline) solid var(--crimson); /* 3.74:1 on plate (non-text) */
+  transform: rotate(45deg);
+}
+
+/* Inside the counter band the state wears the band's own anatomy: chamfered
+   inner plate (.stats-band's), no second border, full width — #stats paints
+   the 1px rule color behind its child, so any gap beside a narrow plate
+   would read as a lit patch (the B3 mortar lesson). */
+#stats .empty-state {
+  max-width: none;
+  border: 0;
+  padding: var(--space-lg) var(--space-md);
+  clip-path: var(--corner-chamfer);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================================================
+   9. SEMANTICS + KEYBOARD — task D1 (see header, D1 block)
+   Section 8 stays C1's; D1 appends after it. Three pieces: the off-screen
+   helper for the renderer's section headings, the skip link, and the skip
+   target's outline suppression. No color tokens are touched — the focus
+   ring and skip link reuse logged pairs only.
+   ========================================================================== */
+
+/* Off-screen helper (also used by js/render.js's .section-heading h2s):
+   the outline h1 -> h2 -> h3 exists for assistive tech without adding
+   visible chrome to the monument. The standard clip pattern — removed from
+   layout flow (absolute) so no mount's geometry changes. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The skip link — first focusable element in the DOM (index.html). Hidden
+   until focused; on focus it stamps in at the top-left as a small ground
+   plate: chrome mono caps on near-black (12.83:1, logged B1), hairline
+   frame, and the global :focus-visible crimson ring. Absolute positioning
+   keeps it out of layout flow both hidden and visible. A plain anchor, so
+   it works with scripting disabled. */
+.skip-link {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--gutter);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--ground);
+  border: var(--hairline) solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome); /* 12.83:1 on ground — logged B1 */
+  text-decoration: none;
+}
+.skip-link:not(:focus) {
+  /* The visually-hidden pattern until focused (any focus mode — keyboard
+     or otherwise — reveals it; it is unclickable while hidden, so focus
+     only ever arrives by keyboard or programmatic focus). */
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The skip link's landing: #wall takes programmatic focus via
+   tabindex="-1" (anchors scroll; only focus moves the tab position). The
+   section-level ring is suppressed — #wall is a programmatic target, not a
+   tab stop, and the next Tab puts the ring on the first plate link (whose
+   plate also raises its focus-within glow). ID specificity outranks the
+   global :focus-visible rule, so this stays scoped to #wall alone. */
+#wall:focus {
+  outline: none;
+}

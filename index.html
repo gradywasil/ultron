@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Ultron Initiative</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="data/builds.js" defer></script>
+  <script src="data/timeline.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <!-- A3 render pipeline: defer keeps order data -> loader -> renderer. -->
+  <script src="js/render.js" defer></script>
+  <!-- B5 motion system: defer keeps order data -> loader -> renderer -> motion. -->
+  <script src="js/motion.js" defer></script>
+</head>
+<body>
+  <!--
+    Direction contract (locked — .impeccable/surfaces/index-html.md, key 4cf1bce5)
+
+    - THESIS: The page is a monument to shipped work — thirteen engraved nameplates packed wall-to-wall under monumental counters — refusing the category-default stacked marketing bands and card-grid-with-hero arrangement.
+    - OWN-WORLD: near-black `#0b0d10` ground, gunmetal `#1d232b` plate fields, chrome `#c9d3dd` engraved type, crimson `#e5383b` glow as the single active accent; scanline overlay; engraved/plate component language (nameplates, dedications, friezes — no soft cards, no drop-shadow card chrome).
+    - STORY: visitor reads the counters (scale), scans the wall (proof, one click per plate), reads the dedications (the six coordinators), walks the frieze (growth over time), exits through the footer plate.
+    - FIRST VIEWPORT: chrome wordmark "THE ULTRON INITIATIVE" stamped across the top; monumental counter band beneath it (6 COORDINATORS · 4 AUTONOMOUS MODES · 13 BUILDS SHIPPED · ∞ MANUAL WORK ELIMINATED); first crimson-lit nameplates glinting at the fold line.
+    - FORM: Honor-Roll Wall, dealt position 5 of seven grounded structures, seed key `e8d349a0`.
+    - FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
+  -->
+  <!-- C1: the machine speaks even when it cannot run. Every section below
+       is an empty mount until js/render.js fills it, so with scripting
+       disabled the page would be a bare lintel — this notice names the
+       mechanism and the recovery. The UA renders it ONLY when JS is off;
+       with scripting enabled <noscript> content is never shown. -->
+  <!-- D1: the skip link is the page's FIRST focusable element. It is
+       visually hidden until focused (css section 9) and jumps straight to
+       the wall — the content itself — past the wordmark and the counters.
+       A plain anchor: it works with scripting disabled too. -->
+  <a class="skip-link" href="#wall">Skip to the wall</a>
+  <noscript>
+    <!-- R3 ($impeccable polish): sentence case, machine voice — a long
+         degraded passage in caps reads as shouting (the critique's
+         all-caps-body finding); the transform came off in css section 8.
+         Problem + recovery kept honest: JavaScript off, page empty, turn
+         it on. -->
+    <p class="noscript-notice">The machine renders this monument — JavaScript carves every section from data. Your browser declines it, so the wall stands unassembled. Enable JavaScript, and it rises.</p>
+  </noscript>
+  <!-- D1 landmarks: the wordmark stamp is the page banner (a body-level
+       <header>); <main> holds the monument proper; the footer is the
+       contentinfo. One h1 — the wordmark. A1 created no nav (single-page,
+       no anchors) and none is added. -->
+  <header id="hero">
+    <!-- B2: the wordmark stamp. #hero is B2's build (A3 never renders it);
+         the text is static branding, not data content. D1 moved it out of
+         <main> into this banner <header>; styles are id-based, unchanged. -->
+    <h1 class="hero-wordmark">The Ultron Initiative</h1>
+    <!-- R2 ($impeccable clarify): the one plain-language line — what the
+         family is, in the machine's readout voice. Static branding like the
+         wordmark above it; styled in css section 1 (.hero-category); a plain
+         <p>, no heading, no landmark. -->
+    <p class="hero-category">A family of agent-coordination skills that builds and ships software — and proves it.</p>
+  </header>
+  <main>
+    <section id="stats"></section>
+    <!-- D1: tabindex="-1" lets the skip link move real focus onto the wall
+         (anchors alone scroll but do not focus); the section's own outline
+         is suppressed in css section 9 — it is a programmatic target, not a
+         tab stop. -->
+    <section id="wall" tabindex="-1"></section>
+    <section id="roster"></section>
+    <section id="frieze"></section>
+  </main>
+  <footer id="footer"></footer>
+</body>
+</html>
