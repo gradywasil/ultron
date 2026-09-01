@@ -8,7 +8,7 @@
    B2 — FIRST VIEWPORT + B3 — NAMEPLATE WALL + B4 — ROSTER / FRIEZE /
    FOOTER (this file's scope); sections 7 (B5 motion), 8 (C1 degraded),
    9 (D1 semantics), 10 (V2 image-led wall), 11 (V3 living hero field),
-   12 (V4 scroll ignition) follow in that order.
+   12 (V4 scroll ignition), 13 (V3-B amplification) follow in that order.
    World: Honor-Roll Wall (locked, .impeccable/surfaces/index-html.md key
    4cf1bce5). The first viewport is a monument wall, not a SaaS hero:
 
@@ -190,23 +190,84 @@ html {
 #hero {
   padding: var(--space-lg) var(--gutter) var(--space-md);
   text-align: center;
+  /* V3-B — the crimson atmosphere. A deep crimson radial wash rising from
+     the hero's foot (the counter band's head) up behind the wordmark and
+     the living field: the embers now swim in visible crimson light, not
+     near-void. Static color, not motion — it renders identically under
+     reduced-motion and without JS (the loudness lives in color/scale/
+     texture, never only in motion). Alpha of the pinned crimson only,
+     strongest well below the lettering and fading to nothing before the
+     lintel rules: composited-pixel contrast recomputed in the V3-B
+     harness (category line chrome-dim over the washed ground >= 4.5:1,
+     wordmark chrome >= 3:1 large — both with margin; see production
+     log). The canvas paints above it, transparent except its sprites. */
+  background:
+    radial-gradient(
+      92% 78% at 50% 100%,
+      rgba(229, 56, 59, 0.13),
+      rgba(229, 56, 59, 0.05) 46%,
+      rgba(229, 56, 59, 0) 72%
+    );
 }
 
-/* Engraved double hairlines above and below the stamp — the lintel rules.
-   Pseudo-elements so index.html stays a pure mount. */
+/* V3-B — the energized lintel. The double hairlines were chrome-alpha
+   rules at rest; they are now the monument's energy lines: a crimson
+   hairline (alpha of the pinned accent) with a faint emission, plus one
+   traveling shimmer segment (a short bright gradient) sweeping along the
+   rule every ~5.6s — the lintel reads powered, not printed. Geometry is
+   byte-identical to B2's stack (a 7px box: 1px crimson rule, 5px gap,
+   1px soft rule — B2 drew the same stack as borders around a 5px
+   content box, so the gap was 5px, not 3; margins unchanged), so the
+   fold math in the V2-2/V2R3 logs still holds (re-measured: first
+   screen top 474.2 at 390 — exact). Implementation: the rules are
+   BACKGROUND layers now, not borders, because one extra layer (the
+   240px shimmer segment) has to travel — background-position is a paint
+   property (motion budget holds; no layout property is animated). The
+   shimmer is decorative; the resting crimson rule carries the energy
+   and is itself decorative framing (the logged B4/B2 rule-class
+   precedent: rules are framing, not state).
+   prefers-reduced-motion: the shimmer stops (the rule stays energized —
+   static, still loud). */
 #hero::before,
 #hero::after {
   content: "";
   display: block;
-  height: 5px; /* 1px rule + 3px gap + 1px rule */
-  border-top: var(--hairline) solid var(--rule-strong);
-  border-bottom: var(--hairline) solid var(--rule-soft);
+  height: 7px; /* 1px rule + 5px gap + 1px rule — B2's exact stack      */
+  background:
+    /* the traveling shimmer: a short bright segment on the crimson line */
+    linear-gradient(
+      90deg,
+      rgba(229, 56, 59, 0),
+      rgba(229, 56, 59, 0.85),
+      rgba(229, 56, 59, 0)
+    ) no-repeat 0 0 / 240px 1px,
+    /* the strong rule — crimson now, at the strong alpha class */
+    linear-gradient(
+      rgba(229, 56, 59, 0.52),
+      rgba(229, 56, 59, 0.52)
+    ) no-repeat 0 0 / 100% 1px,
+    /* the soft under-rule — unchanged chrome alpha */
+    linear-gradient(
+      var(--rule-soft),
+      var(--rule-soft)
+    ) no-repeat 0 100% / 100% 1px;
+  box-shadow: 0 0 9px 1px rgba(229, 56, 59, 0.16); /* faint emission    */
+  animation: lintel-shimmer 5.6s linear infinite;
 }
 #hero::before {
   margin-bottom: var(--space-sm);
 }
 #hero::after {
   margin-top: var(--space-sm);
+}
+
+@keyframes lintel-shimmer {
+  from {
+    background-position: -240px 0, 0 0, 0 100%;
+  }
+  to {
+    background-position: calc(100% + 240px) 0, 0 0, 0 100%;
+  }
 }
 
 .hero-wordmark {
@@ -266,7 +327,9 @@ html {
 #stats {
   margin-top: var(--space-sm);
   padding: var(--hairline);
-  background: var(--rule-strong);
+  /* V3-B: the band frame is crimson-alpha now — the energized band's own
+     hairline (decorative framing, the logged rule-class precedent). */
+  background: rgba(229, 56, 59, 0.42);
   clip-path: var(--corner-chamfer);
 }
 
@@ -276,7 +339,19 @@ html {
   list-style: none;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  background: var(--plate);
+  /* V3-B — the dark-crimson plate variant (bolder: "the stats band may
+     take a dark-crimson plate instead of pure gunmetal"). One crimson
+     wash layer over the gunmetal field: rgba(229,56,59,0.12) composited
+     over --plate = ~rgb(55,38,45), a deep crimson-tinted gunmetal — the
+     monument's scale readout now sits on the machine's own light. Metal-
+     Only Rule holds (alpha of the pinned crimson over the pinned plate).
+     Contrast, recomputed from composited pixels in the V3-B harness:
+     numerals chrome ~9.4:1 (large, floor 3:1), labels (re-tuned below)
+     ~8:1 (body-size, floor 4.5), both AT the echo sweep's residence on
+     the band — numbers in the production log. */
+  background-color: var(--plate);
+  background-image:
+    linear-gradient(rgba(229, 56, 59, 0.12), rgba(229, 56, 59, 0.12));
   clip-path: var(--corner-chamfer);
   box-shadow:
     inset 0 1px 0 rgba(201, 211, 221, 0.06),
@@ -301,7 +376,17 @@ html {
   line-height: var(--leading-counter);
   color: var(--chrome);
   font-variant-numeric: var(--numeric-tabular);
-  text-shadow: var(--engrave-text);
+  /* V3-B — the crimson core (bolder: "counter numerals gain stronger
+     glow/crimson cores"). The glyphs stay full chrome (10.43:1 on plate;
+     ~9.4:1 on the tinted band — large text, floor 3:1), and a layered
+     crimson emission burns behind them: a tight 16px core inside a wide
+     48px bloom. The emission sits BEHIND the strokes (text-shadow), so
+     it adds separation, never eats it. Static color — renders fully
+     under reduced-motion. */
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 0 16px rgba(229, 56, 59, 0.55),
+    0 0 48px rgba(229, 56, 59, 0.32);
 }
 
 .stat-label {
@@ -312,7 +397,16 @@ html {
   font-size: var(--size-readout);
   letter-spacing: var(--track-caps-wide);
   text-transform: uppercase;
-  color: var(--chrome-dim);
+  /* V3-B: re-tuned for the dark-crimson plate. Dim chrome on the tinted
+     band measures ~4.4:1 — under the 4.5 body floor once the sweep's
+     echo wash rides over it — so the labels step up to near-full chrome
+     at 0.92 alpha, which the crimson field beneath tints warm (craft
+     floor: on a colored surface, secondary text tinted from that hue or
+     the foreground, never gray). ~8:1 on the tinted band, >= 4.5 at
+     worst-case wash residence — recomputed in the V3-B harness. Size/
+     weight still carry the numeral/label hierarchy; color no longer
+     needs to. */
+  color: rgba(201, 211, 221, 0.92);
 }
 
 /* ==========================================================================
@@ -377,7 +471,12 @@ html {
 .plate:hover,
 .plate:focus-within {
   z-index: 1;
-  transform: translateY(-2px);
+  /* V3-B: with 3-column plates carrying ~2x the screen area, the hover
+     answer scales too — translateY(-2px) scale(1.02), the top of the
+     sanctioned band (1.012 measured visually timid in the V3-B harness
+     at the new plate size). Transform only (never a layout property);
+     z-index: 1 already lets the lifted plate read over its neighbors. */
+  transform: translateY(-2px) scale(1.02);
   box-shadow:
     inset 0 1px 0 rgba(201, 211, 221, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.5),
@@ -725,14 +824,20 @@ html {
   column-gap: var(--space-md);
 }
 
-/* The carved spine: one hairline across the whole band. */
+/* The carved spine: one hairline across the whole band. V3-B: the spine
+   is an ENERGY line now, matching the energized lintel (the page's two
+   structural rules — lintel and lineage — both carry the machine's
+   light): crimson-alpha rule + faint emission, decorative framing under
+   the logged rule-class precedent. The lit nodes and the pulse still
+   carry the actual state. */
 .frieze-line::before {
   content: "";
   position: absolute;
   top: var(--spine-y);
   left: 0;
   right: 0;
-  border-top: var(--hairline) solid var(--rule-strong);
+  border-top: var(--hairline) solid rgba(229, 56, 59, 0.4);
+  box-shadow: 0 0 8px 1px rgba(229, 56, 59, 0.14);
 }
 
 .milestone {
@@ -816,14 +921,16 @@ html {
     top: 0.3125rem; /* the node rides at each course's top-left */
   }
   /* Each course carves the rail down to the next node; the last course
-     ends the lineage. */
+     ends the lineage. V3-B: the stele segments carry the same energized
+     crimson rule as the horizontal spine above. */
   .milestone::after {
     content: "";
     position: absolute;
     left: 5px;
     top: 1.125rem;
     bottom: calc(-1 * var(--space-lg) - 0.3125rem);
-    border-left: var(--hairline) solid var(--rule-strong);
+    border-left: var(--hairline) solid rgba(229, 56, 59, 0.4);
+    box-shadow: 0 0 8px 1px rgba(229, 56, 59, 0.12);
   }
   .milestone:last-child::after {
     content: none;
@@ -1133,15 +1240,23 @@ html {
 .noscript-notice {
   margin: 0;
   padding: var(--space-sm) var(--gutter);
-  background: var(--plate);
-  border-bottom: var(--hairline) solid var(--rule-strong);
+  /* V3-B: the machine's fallback band takes the counter band's own
+     dark-crimson plate variant (the bolder pass treats the degraded
+     states too — the world stays loud even when it cannot run). Chrome
+     lettering on the tinted plate reads ~9.4:1 (recomputed, V3-B
+     harness); the border rule goes crimson-alpha to match the energized
+     band family. */
+  background-color: var(--plate);
+  background-image:
+    linear-gradient(rgba(229, 56, 59, 0.12), rgba(229, 56, 59, 0.12));
+  border-bottom: var(--hairline) solid rgba(229, 56, 59, 0.42);
   font-family: var(--font-mono);
   font-weight: var(--weight-regular);
   font-size: var(--size-readout);
   line-height: var(--leading-readout);
   letter-spacing: var(--track-readout);
   text-align: center;
-  color: var(--chrome); /* 10.43:1 on plate — logged B1 */
+  color: var(--chrome); /* ~9.4:1 on the tinted plate — V3-B recompute */
 }
 
 /* A quiet plate for an empty mount: hairline rule + raised bevel (the
@@ -1189,6 +1304,13 @@ html {
   border: 0;
   padding: var(--space-lg) var(--space-md);
   clip-path: var(--corner-chamfer);
+  /* V3-B: wears the band's dark-crimson plate variant, and its dim voice
+     steps up to the re-tuned near-chrome labels (the tinted field drops
+     dim chrome under the 4.5 floor — same recompute as .stat-label). */
+  background-color: var(--plate);
+  background-image:
+    linear-gradient(rgba(229, 56, 59, 0.12), rgba(229, 56, 59, 0.12));
+  color: rgba(201, 211, 221, 0.92);
   box-shadow:
     inset 0 1px 0 rgba(201, 211, 221, 0.06),
     inset 0 -1px 0 rgba(0, 0, 0, 0.5);
@@ -1519,9 +1641,13 @@ html {
 
 /* Pre-ignition offset — ONLY under the arming class, ONLY until .is-risen.
    The `translate` channel (not `transform`): hover's -2px lift composes
-   with it instead of competing for one transition. */
+   with it instead of competing for one transition.
+   V3-B (bolder): the rise deepens 12px -> 24px — the wave now visibly
+   CARRIES each plate in — with a brief crimson flash on arrival (section
+   13's .plate::after ignition flash, fired by this same class). Stagger
+   stays ~55ms (motion.js); duration/ease unchanged. */
 .wall-armed .plate:not(.is-risen) {
-  translate: 0 12px;
+  translate: 0 24px;
   opacity: 0;
 }
 
@@ -1553,8 +1679,13 @@ html {
     transform 0.35s var(--ease-ignite);
 }
 .milestone.is-pulse::before {
-  transform: rotate(45deg) scale(1.45);
-  box-shadow: 0 0 16px rgba(229, 56, 59, 0.95);
+  /* V3-B: the flare scales up — 1.45 -> 1.6 — and the bloom deepens
+     (a second tight core inside the 22px wash). Transform + paint only,
+     on the fixed 9px box. */
+  transform: rotate(45deg) scale(1.6);
+  box-shadow:
+    0 0 22px rgba(229, 56, 59, 1),
+    0 0 6px rgba(229, 56, 59, 0.9);
 }
 
 /* --- Section reveals: one quiet rise each -------------------------------------
@@ -1595,3 +1726,244 @@ body.motion-armed .footer-plate {
     opacity: 1;
   }
 }
+
+/* ==========================================================================
+   13. V3-B — AMPLIFICATION (task V3-B, IRON MAN — "$impeccable bolder")
+   --------------------------------------------------------------------------
+   The owner's third ask for volume ("I still want the site louder"),
+   answered inside the locked ignited world — one design hand, no new
+   primitives: the accent already approved on day one and never spent
+   (PRODUCT.md assembly ledger: "classic Ultron — near-black, gunmetal
+   chrome, glowing crimson accents, SCANLINE AND GLITCH EFFECTS") finally
+   ships. This section owns the pieces that are NEW STRUCTURE; the value
+   swaps it depends on live in their home sections (crimson hero wash +
+   energized lintel in section 1, the dark-crimson counter band + numeral
+   cores + re-tuned labels in section 2, hover scale 1.012 in section 3,
+   the 24px rise + 1.6x frieze flare in section 12, the 0.28 scanline ink
+   in tokens.css, the louder field in js/field.js):
+
+     1. THE WORDMARK GLITCH — RGB-split/chromatic-aberration copies of
+        "THE ULTRON INITIATIVE" (one crimson-shifted, one chrome-shifted —
+        the aberration pair stays inside the Metal-Only Rule) with
+        clip-path slice jump-cuts. A periodic pulse every ~7-10s (~320ms,
+        js/motion.js — randomized interval AND randomized entry phase via
+        negative animation-delay, so every pulse cuts different slices)
+        plus glitch-on-hover. NEVER during the count-up power-on: motion.js
+        arms the wordmark only after the count-up settles (one moment at
+        a time). Accessible name unchanged: the copies are pseudo-element
+        content with EMPTY ALT (`attr(data-text) / ""`) — excluded from
+        the accessibility tree in engines that support the syntax, and in
+        engines that do not the whole declaration drops (no pseudo
+        content at all — the wordmark simply never glitches; graceful).
+        Layout NEVER shifts: transform + clip-path + opacity only.
+     2. THE 3-COLUMN WALL — at >= 1280px the wall commits to three
+        columns of monumental plates (~392px at 1280, ~443px at 1440);
+        the screenshots become the dominant surface at roughly 2x their
+        4-column area. Below 1280 the packed auto-fill grammar (320px
+        floor, 4 -> 2 -> 1) is untouched. Container-query titles scale
+        with the wider tracks automatically (clamp ceiling unchanged).
+     3. THE ARRIVAL FLASH — each plate lands its rise with a brief
+        crimson flash (the ::after ignition glow, opacity-only), peaking
+        as the 0.6s rise settles. Arming-gated like the rise itself.
+     4. THE LIVE PULSE — every LIVE diamond breathes: a slow continuous
+        crimson pulse (2.7s, subtle amplitude) so the wall never fully
+        rests between moments. The field's breathing (V3) and the LIVE
+        markers (V3-B) are the page's two sanctioned idle loops.
+
+   REDUCED MOTION — every animation this section adds is killed in the
+   block at the end (and js/motion.js never arms the glitch under the
+   preference, and the pulse/flash are arming-gated): the page stays
+   LOUD by color/scale/texture — the crimson wash, the energized rules,
+   the tinted band, the numeral cores, the bigger wall, the stronger
+   scanlines all render statically. Glitch OFF, pulse OFF, shimmer OFF.
+   ========================================================================== */
+
+/* --- 1. The wordmark glitch -------------------------------------------------- */
+
+/* The two aberration copies: same box (inset 0 over the h1), same
+   inherited typography (font, tracking, transform, text-wrap: balance —
+   identical wraps), painted above the real text (positioned boxes paint
+   above in-flow content). At rest they are fully transparent; only the
+   burst keyframes ever show them. text-shadow is cleared per layer (each
+   carries its own emission instead of the engraved seat). */
+.hero-wordmark::before,
+.hero-wordmark::after {
+  content: attr(data-text) / ""; /* empty alt: outside the a11y tree    */
+  position: absolute;
+  inset: 0;
+  color: var(--chrome);
+  text-shadow: none;
+  opacity: 0; /* the resting wordmark is the clean chrome stamp         */
+  pointer-events: none;
+}
+
+/* Layer A — the crimson-shifted copy (the "red channel" of the split,
+   in the world's own accent). */
+.hero-wordmark::before {
+  color: rgba(229, 56, 59, 0.92);
+  text-shadow: 0 0 14px rgba(229, 56, 59, 0.5);
+}
+
+/* Layer B — the chrome-shifted copy (the cool channel — chrome is the
+   world's cool white; the pair reads as chromatic aberration without a
+   single off-world hue). */
+.hero-wordmark::after {
+  color: rgba(201, 211, 221, 0.88);
+  text-shadow: 0 0 14px rgba(201, 211, 221, 0.45);
+}
+
+/* The burst: steps(1) timing = jump-cuts, no interpolation — five slice
+   frames per layer, each a clip-path band at a displaced offset, then
+   gone. ~64ms per frame, ~320ms total. JS randomizes the entry phase
+   per pulse with a negative animation-delay (--gd-a / --gd-b), so the
+   same keyframes cut a different composition every time. Triggers: the
+   periodic pulse (.is-glitch, js/motion.js) and hover on the armed
+   wordmark (.glitch-live — both classes are JS-added, so no-JS and
+   reduced-motion never glitch). `both` fill: clean opacity-0 rest
+   before the first frame and after the last. */
+.hero-wordmark.is-glitch::before,
+.hero-wordmark.glitch-live:hover::before {
+  animation: wordmark-glitch-a 0.32s steps(1) both;
+  animation-delay: var(--gd-a, 0s);
+}
+.hero-wordmark.is-glitch::after,
+.hero-wordmark.glitch-live:hover::after {
+  animation: wordmark-glitch-b 0.32s steps(1) both;
+  animation-delay: var(--gd-b, 0s);
+}
+
+@keyframes wordmark-glitch-a {
+  0%   { opacity: 0.9;  transform: translate(-4px, -2px); clip-path: inset(8%  0 74% 0); }
+  20%  { opacity: 0.85; transform: translate(5px, 2px);   clip-path: inset(52% 0 26% 0); }
+  40%  { opacity: 0.9;  transform: translate(-6px, 1px);  clip-path: inset(30% 0 52% 0); }
+  60%  { opacity: 0.8;  transform: translate(4px, -2px);  clip-path: inset(70% 0 10% 0); }
+  80%  { opacity: 0.9;  transform: translate(-3px, 2px);  clip-path: inset(12% 0 68% 0); }
+  100% { opacity: 0; }
+}
+
+@keyframes wordmark-glitch-b {
+  /* Layer B opens with one FULL-frame echo (no clip) — the pure
+     chromatic-aberration flash — then slices. */
+  0%   { opacity: 0.75; transform: translate(3px, 0);    clip-path: inset(0 0 0 0); }
+  20%  { opacity: 0.8;  transform: translate(-5px, -1px); clip-path: inset(42% 0 34% 0); }
+  40%  { opacity: 0.75; transform: translate(6px, 2px);   clip-path: inset(16% 0 66% 0); }
+  60%  { opacity: 0.8;  transform: translate(-4px, -2px); clip-path: inset(62% 0 18% 0); }
+  80%  { opacity: 0.75; transform: translate(2px, 1px);   clip-path: inset(4%  0 78% 0); }
+  100% { opacity: 0; }
+}
+
+/* During the burst the stamp itself flares crimson (the base text never
+   moves — the copies carry every displacement). A jump-cut swap, no
+   transition: the flicker IS the aesthetic. The class lives ~360ms per
+   pulse (js/motion.js removes it); on hover the flare holds with the
+   pointer. */
+.hero-wordmark.is-glitch,
+.hero-wordmark.glitch-live:hover {
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.55),
+    0 0 30px rgba(229, 56, 59, 0.38);
+}
+
+/* --- 2. The 3-column wall ------------------------------------------------------ */
+
+@media (min-width: 1280px) {
+  .wall-grid {
+    /* V3-B: three monumental columns at desktop — the screens lead the
+       page (roughly 2x their 4-column area: ~441x275px screens at 1440
+       vs ~325x203 before). Deterministic (not another auto-fill floor,
+       which would fall back to 2 columns at 1280-1350 and return to 4
+       at ultrawide); below 1280 the packed auto-fill grammar — and every
+       mobile tier — is untouched. 13 being prime still leaves the last
+       row's bare backing wall: room to grow. */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* --- 3. The arrival flash ------------------------------------------------------- */
+
+/* The plate's ignition glow, flashed once as the rise lands. ::after is
+   free in both plate anatomies (the unlit-screen fallback uses ::before).
+   Opacity-only keyframes (compositor-driven); the flash peaks as the
+   0.6s rise settles (delay 0.45s, peak inside the ramp) and `forwards`
+   holds the clean rest. Arming-gated: no-JS / no-IO / reduced-motion
+   never see it (and the pseudo stays transparent forever — nothing is
+   hidden by it; it is pure light). */
+.plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(229, 56, 59, 0.5),
+    inset 0 -28px 44px -26px rgba(229, 56, 59, 0.6),
+    var(--glow-crimson-strong);
+}
+
+@keyframes plate-arrival-flash {
+  0%   { opacity: 0; }
+  22%  { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+.wall-armed .plate.is-risen::after {
+  animation: plate-arrival-flash 0.55s ease-out 0.45s forwards;
+}
+
+/* --- 4. The LIVE pulse ----------------------------------------------------------- */
+
+/* Every lit diamond breathes — the machine's idle heartbeat extended to
+   the wall itself: 2.7s period, subtle amplitude (scale 1 -> 1.18, glow
+   6px -> 13px), the same channels the pulse state already owns (transform
+   + box-shadow on a fixed 7px box). Arming-gated so the no-JS wall rests
+   at B4's static lit state. The marker's contrast never drops: it only
+   brightens. */
+@keyframes live-diamond-pulse {
+  0%, 100% {
+    transform: rotate(45deg) scale(1);
+    box-shadow: 0 0 6px rgba(229, 56, 59, 0.65);
+  }
+  50% {
+    transform: rotate(45deg) scale(1.18);
+    box-shadow: 0 0 13px rgba(229, 56, 59, 0.95);
+  }
+}
+
+.wall-armed .plate-link-live::before {
+  animation: live-diamond-pulse 2.7s ease-in-out infinite;
+}
+
+/* --- prefers-reduced-motion: V3-B's animations, killed ----------------------------
+   js/motion.js never arms the glitch under the preference (and clears it
+   on a live switch); the pulse and flash are arming-gated and named here
+   anyway (belt and braces, the V4 pattern); the lintel shimmer stops on
+   its energized-but-static rule. What REMAINS loud under the preference:
+   the crimson wash, the energized rules, the tinted band, the numeral
+   cores, the 3-column wall, the 0.28 scanlines — all static color. */
+@media (prefers-reduced-motion: reduce) {
+  #hero::before,
+  #hero::after {
+    animation: none; /* the shimmer rests; the crimson rule stays       */
+  }
+  .hero-wordmark.is-glitch::before,
+  .hero-wordmark.is-glitch::after,
+  .hero-wordmark.glitch-live:hover::before,
+  .hero-wordmark.glitch-live:hover::after {
+    animation: none;
+    opacity: 0; /* no burst, ever — the clean chrome stamp              */
+  }
+  .hero-wordmark.is-glitch,
+  .hero-wordmark.glitch-live:hover {
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.55),
+      0 0 28px rgba(201, 211, 221, 0.14); /* the static stamp, restored */
+  }
+  .wall-armed .plate.is-risen::after {
+    animation: none;
+    opacity: 0;
+  }
+  .wall-armed .plate-link-live::before {
+    animation: none; /* B4's static lit diamond                         */
+  }
+}
+

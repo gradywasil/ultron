@@ -64,8 +64,13 @@
     <canvas id="hero-field" aria-hidden="true"></canvas>
     <!-- B2: the wordmark stamp. #hero is B2's build (A3 never renders it);
          the text is static branding, not data content. D1 moved it out of
-         <main> into this banner <header>; styles are id-based, unchanged. -->
-    <h1 class="hero-wordmark">The Ultron Initiative</h1>
+         <main> into this banner <header>; styles are id-based, unchanged.
+         V3-B: data-text is the CSS glitch layers' copy source (styles.css
+         section 13 draws two aberration pseudo-copies from it with EMPTY
+         ALT — the accessible name stays the one real text node below).
+         KEEP data-text IN SYNC with the text if the wordmark ever
+         changes; a desync degrades to a harmless mismatched burst. -->
+    <h1 class="hero-wordmark" data-text="The Ultron Initiative">The Ultron Initiative</h1>
     <!-- R2 ($impeccable clarify): the one plain-language line — what the
          family is, in the machine's readout voice. Static branding like the
          wordmark above it; styled in css section 1 (.hero-category); a plain

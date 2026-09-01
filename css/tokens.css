@@ -141,9 +141,16 @@
      Committed-world texture (OWN-WORLD block). A fixed, non-interactive
      pseudo-element paints 1px dark lines every 3px: visible as faint
      machine-texture on the gunmetal plates, near-invisible on the ground,
-     never obscuring content. Static — no animation (B5 owns motion).      */
+     never obscuring content. Static — no animation (B5 owns motion).
+     V3-B (bolder): ink raised 0.22 -> 0.28 — the owner's "louder" asked
+     for the scanline texture to read at a glance, not only on close
+     inspection. Contrast NOTE (recomputed, V3-B harness, D2's duty-cycle
+     method): darker shaded rows only RAISE light-text contrast (the duty
+     average darkens toward the ink), so every text pair stays >= its
+     floor — worst pair chrome-dim/plate moves 5.41 -> 5.50 duty-averaged;
+     rendered-pixel corroboration in the production log.                */
   --scanline-period: 3px;
-  --scanline-ink: rgba(0, 0, 0, 0.22);
+  --scanline-ink: rgba(0, 0, 0, 0.28);
   --scanline-z: 9999;
 }
 

@@ -42,6 +42,20 @@
       (.is-ignited) fire as one observer/one moment. The counter band
       and hero already own the power-on — untouched.
 
+   5. WORDMARK GLITCH PULSE (V3-B). "THE ULTRON INITIATIVE" takes the
+      glitch the owner approved on day one (PRODUCT.md assembly ledger:
+      "scanline/glitch texture") — css/styles.css section 13 carries the
+      two aberration copies and the jump-cut keyframes; THIS module owns
+      the orchestration: the wordmark arms (.glitch-live) only after the
+      count-up's power-on has fully settled (one moment at a time), then
+      fires a ~320ms burst (.is-glitch) every 7-10s — randomized
+      interval AND randomized entry phase (negative animation-delay per
+      layer via --gd-a/--gd-b, so every pulse cuts different slices);
+      each burst self-clears ~360ms in. Hover glitches too (CSS-only on
+      the armed class). Reduced motion: never arms, and a live switch
+      clears the classes (the CSS kill block finishes the job). No-JS:
+      neither class ever exists — the clean chrome stamp, forever.
+
    V3 ORCHESTRATION (the one hook into the sibling hero-field system,
    js/field.js): when the count-up ignites, this module ALSO fires the
    field's power-on sweep (window.ULTRON_FIELD.ignite()) so scan and
@@ -143,6 +157,11 @@
       window.requestAnimationFrame(frame);
     }
     window.requestAnimationFrame(frame);
+    /* V3-B: the wordmark glitch arms once the power-on has fully
+       settled — the count-up (~1.1s) plus a beat, so the sweep-and-
+       numerals moment stays ONE moment before the wordmark ever speaks.
+       Degraded stats (no counters) fall back to init()'s later arm. */
+    armWordmarkGlitch(COUNT_DURATION_MS + 1200);
   }
 
   function finalizeCounters() {
@@ -296,6 +315,69 @@
     if (foot) revealIO.observe(foot);
   }
 
+  /* --- 5. WORDMARK GLITCH PULSE (V3-B) ---------------------------------------- */
+
+  var GLITCH_MIN_MS = 7000;   /* pulse cadence band, randomized per pulse */
+  var GLITCH_MAX_MS = 10000;
+  var GLITCH_CLEAR_MS = 360;  /* burst class lifetime (~320ms + slack)     */
+  var glitchArmed = false;
+  var glitchClearTimer = 0;
+
+  /* Fire one burst: re-randomize each layer's entry phase (a negative
+     animation-delay inside the 0.32s keyframes — the same cuts land at
+     different compositions every pulse), restart the CSS animation
+     (class off, forced reflow, class on — one reflow per pulse is the
+     whole cost), and self-clear so the base stamp's flare swaps back. */
+  function fireGlitch(wm) {
+    wm.style.setProperty("--gd-a", (-Math.random() * 0.26).toFixed(3) + "s");
+    wm.style.setProperty("--gd-b", (-Math.random() * 0.26).toFixed(3) + "s");
+    wm.classList.remove("is-glitch");
+    void wm.offsetWidth; /* restart the keyframes                        */
+    wm.classList.add("is-glitch");
+    if (glitchClearTimer) clearTimeout(glitchClearTimer);
+    glitchClearTimer = setTimeout(function () {
+      glitchClearTimer = 0;
+      wm.classList.remove("is-glitch");
+    }, GLITCH_CLEAR_MS);
+  }
+
+  function scheduleGlitch(wm) {
+    later(function () {
+      fireGlitch(wm);
+      scheduleGlitch(wm);
+    }, GLITCH_MIN_MS + Math.floor(Math.random() * (GLITCH_MAX_MS - GLITCH_MIN_MS)));
+  }
+
+  /* Idempotent: the count-up's arm and init()'s degraded fallback race,
+     the first one wins. Never arms under reduced motion (re-checked at
+     arm time — a switch during the delay lands static). */
+  function armWordmarkGlitch(delayMs) {
+    if (glitchArmed) return;
+    glitchArmed = true;
+    var wm = document.querySelector(".hero-wordmark");
+    if (!wm) return;
+    later(function () {
+      if (prefersReducedMotion()) return;
+      wm.classList.add("glitch-live"); /* hover glitches from here on     */
+      scheduleGlitch(wm);              /* first pulse +7-10s, then cadence */
+    }, delayMs);
+  }
+
+  /* Reduced-motion switch: strip both classes and kill the pending
+     clear (the CSS kill block renders the copies inert regardless). */
+  function disarmWordmarkGlitch() {
+    var wm = document.querySelector(".hero-wordmark");
+    if (wm) {
+      wm.classList.remove("is-glitch");
+      wm.classList.remove("glitch-live");
+    }
+    if (glitchClearTimer) {
+      clearTimeout(glitchClearTimer);
+      glitchClearTimer = 0;
+    }
+    glitchArmed = true; /* stays disarmed: once per load, no replay      */
+  }
+
   /* --- REDUCED MOTION / ANCIENT ENGINES --------------------------------------- */
 
   /* Remove the arming classes so every pre-rise offset vanishes (the
@@ -336,6 +418,7 @@
     if (!prefersReducedMotion()) return; /* once per load — no replay */
     finalizeCounters(); /* counters snap to their final engraved values */
     igniteAllInstantly();
+    disarmWordmarkGlitch(); /* V3-B: the wordmark settles to its clean stamp */
     if (igniteIO) igniteIO.disconnect();
     if (plateIO) plateIO.disconnect();
     if (revealIO) revealIO.disconnect();
@@ -363,6 +446,12 @@
     initFriezeSweep();
     initWallIgnition();
     initSectionReveals();
+    /* V3-B fallback arm: if the counter band never counts (degraded
+       stats), the wordmark still learns to glitch — the power-on that
+       gates it is the field's natural first pass (~1.6s + 3.2s), so
+       2.6s clears it. Loses the race to runCountUp's arm whenever
+       counters exist (arm is idempotent). */
+    armWordmarkGlitch(2600);
   }
 
   if (document.readyState === "loading") {
