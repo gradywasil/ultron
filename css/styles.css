@@ -6,7 +6,9 @@
 
    --------------------------------------------------------------------------
    B2 — FIRST VIEWPORT + B3 — NAMEPLATE WALL + B4 — ROSTER / FRIEZE /
-   FOOTER (this file's scope)
+   FOOTER (this file's scope); sections 7 (B5 motion), 8 (C1 degraded),
+   9 (D1 semantics), 10 (V2 image-led wall), 11 (V3 living hero field),
+   12 (V4 scroll ignition) follow in that order.
    World: Honor-Roll Wall (locked, .impeccable/surfaces/index-html.md key
    4cf1bce5). The first viewport is a monument wall, not a SaaS hero:
 
@@ -18,7 +20,8 @@
                  A3's and stay untouched (B5 animates them).
      3. #wall  — the nameplate wall BEGINS in the first viewport: packed
                  auto-fill grid on a shared backing field, hairline-ruled
-                 plates, engraved anatomy (title, one-liner, tags, links).
+                 plates, engraved anatomy (screen window, title, one-liner,
+                 tags, links — V2 made the wall image-led; see section 10).
                  A faint static crimson ember pools at each plate's base —
                  the "first crimson-lit nameplates glinting at the fold
                  line"; hover/keyboard focus RAISES the glow (strong token).
@@ -229,9 +232,18 @@ html {
    already uses (Martian Mono 400, tracked caps, --chrome-dim). A quiet
    caption: text insertion only, the FIRST VIEWPORT composition (wordmark /
    counter band / plates at the fold) is untouched. New text pair reuses the
-   logged matrix — chrome-dim on ground 6.55:1 (B1 arithmetic). */
+   logged matrix — chrome-dim on ground 6.55:1 (B1 arithmetic).
+   V2R3 ($impeccable typeset): measure capped at 55ch so the 85-character
+   caption sets as a BALANCED TWO-LINE GROUP, never one long passage line —
+   the cap is sized in the mono's own advance (1ch = the 0.70em "0" cell;
+   55ch = 500.5px at the 13px readout, ~45 tracked characters of line
+   capacity), and the auto side margins seat the capped box on the hero's
+   center axis (the lintel's centered grammar). Below the cap width (the
+   phone tiers: 350px at 390, 280px at 320) the box still fills the column,
+   so the V2R2 phone-fold wraps and margins are untouched. */
 .hero-category {
-  margin: var(--space-sm) 0 0;
+  margin: var(--space-sm) auto 0;
+  max-width: 55ch;
   font-family: var(--font-mono);
   font-weight: var(--weight-regular);
   font-size: var(--size-readout);
@@ -323,7 +335,11 @@ html {
 
 .wall-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  /* V2: the track floor rises 280px -> 320px for the image-led wall — the
+     screens carry the visual weight now, so every plate takes more of the
+     row (auto-fill still packs edge-to-edge; 13 is prime, last row shows
+     backing wall — room to grow, not a hole). */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: var(--space-3xs); /* mounting joints between plates */
   padding: var(--space-3xs); /* joint frame around the field */
   background: var(--well); /* the shared backing field of the monument */
@@ -351,15 +367,17 @@ html {
 
 /* Hover / keyboard presence RAISES the glow (surface brief: "hover raises
    glow"): the chrome rule turns crimson, the base ember deepens, and the
-   outer glow lifts to the strong token. The 1px lift is a static state
-   change (translate only, never scale). The z-index lift lets the outer
-   glow read over neighboring plates.
+   outer glow lifts to the strong token. The 2px lift is a static state
+   change (translate only, never scale) — V2 deepened it one step for the
+   heavier image-led plates. The z-index lift lets the outer glow read
+   over neighboring plates; section 10 adds the screen's own frame
+   ignition on the same intent.
    B5 wired: the transform + box-shadow transition lives in section 7
    (no layout properties; prefers-reduced-motion snaps it). */
 .plate:hover,
 .plate:focus-within {
   z-index: 1;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow:
     inset 0 1px 0 rgba(201, 211, 221, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.5),
@@ -367,6 +385,13 @@ html {
     inset 0 -28px 44px -26px rgba(229, 56, 59, 0.62),
     var(--glow-crimson-strong);
 }
+
+/* V2 — the lit-screen window (deleted the V1 dormant rule here; the full
+   image-led redesign lives in section 10). js/render.js draws <div
+   class="plate-screen"><img class="plate-shot">…</div> as the plate's
+   FIRST child; section 10 lets the screen into the plate's face. Plates
+   WITHOUT an image render the v1 anatomy plus section 10's unlit-screen
+   emblem — the styled fallback. */
 
 .plate-title {
   margin: 0;
@@ -899,6 +924,25 @@ html {
 
 /* ==========================================================================
    First-viewport composition breakpoints
+   --------------------------------------------------------------------------
+   V2-2 ($impeccable adapt) added the phone FOLD to the 480 block: the FIRST
+   VIEWPORT contract (field breathing behind the wordmark, category line,
+   counter band counting up, the first image-led plates glinting at the
+   fold) is honored on a phone, not only at 1440. Baseline device-metric
+   captures put the first plate's screen window at 657px on a 568px-tall
+   viewport (three-line wordmark, four-line category, full-padding 2x2
+   band) — the whole first screen of proof sat below the fold, so the
+   visitor scrolled blind past the counters with nothing image-led to
+   tease them on. The treatment SCALES the hero down, never amputates it:
+   the stamp keeps its double lintel rules and wide tracking, the wordmark
+   steps to 1.875rem so "THE ULTRON" fits its line even at 320 (two
+   balanced lines instead of three), the numerals stay monumental FOR A
+   PHONE (3rem Cinzel 900 against 11px labels — the same 4.4x dominance
+   and the same hierarchy as 111px against 13px at 1440), and the field
+   (js/field.js) re-measures its restraint zones from the live geometry,
+   so the canvas follows the compacted column automatically. Below 360px
+   the same treatment takes one more spacing step (the 320 floor) so the
+   first screen clears the wall's rise threshold too.
    ========================================================================== */
 
 @media (max-width: 900px) {
@@ -918,11 +962,71 @@ html {
 }
 
 @media (max-width: 480px) {
+  #hero {
+    padding: var(--space-md) var(--gutter) var(--space-sm);
+  }
+  #hero::before {
+    margin-bottom: var(--space-xs);
+  }
+  #hero::after {
+    margin-top: var(--space-xs);
+  }
+  .hero-wordmark {
+    font-size: 1.875rem;
+  }
+  .hero-category {
+    margin: var(--space-xs) 0 0;
+  }
+  #stats {
+    margin-top: var(--space-xs);
+  }
   .stat {
-    padding: var(--space-sm) var(--space-2xs) var(--space-md);
+    padding: var(--space-xs) var(--space-2xs) var(--space-sm);
+  }
+  .stat-value {
+    font-size: 3rem;
+  }
+  #wall {
+    margin-top: var(--space-md);
   }
   .stat-label {
     font-size: var(--size-micro);
+  }
+}
+
+@media (max-width: 360px) {
+  /* The secondary floor (320-class phones, the V2-2 "320 secondarily"
+     target): the same hero one step tighter. At the 480 tier alone the
+     first screen's top entered a 568px viewport by ~45px — inside the
+     fold but under the wall's 0.15 rise threshold (js/motion.js), so the
+     plate sat un-risen and invisible at rest. One spacing step more puts
+     the frame + screen glass visibly into the initial viewport and clears
+     the threshold, so the first screen is LIT in the first capture, not
+     merely adjacent to it. */
+  #hero {
+    padding-top: var(--space-sm);
+    padding-bottom: var(--space-xs);
+  }
+  #hero::before {
+    margin-bottom: var(--space-2xs);
+  }
+  #hero::after {
+    margin-top: var(--space-2xs);
+  }
+  .hero-wordmark {
+    font-size: 1.75rem;
+  }
+  .hero-category {
+    margin-top: var(--space-2xs);
+  }
+  #stats {
+    margin-top: var(--space-2xs);
+  }
+  .stat {
+    padding-bottom: var(--space-xs);
+  }
+  #wall {
+    margin-top: var(--space-sm);
   }
 }
 
@@ -1157,4 +1261,337 @@ html {
    global :focus-visible rule, so this stays scoped to #wall alone. */
 #wall:focus {
   outline: none;
+}
+
+/* ==========================================================================
+   10. V2 — THE IGNITION: the image-led wall, lit screens (task V2)
+   --------------------------------------------------------------------------
+   The wall redesigned around the real screenshots (OWN-WORLD: "vendored
+   real experiment screenshots framed as lit screens in the dark"). Every
+   plate now leads with the face of the build it honors; STORY: "an
+   image-led wall — proof you can SEE".
+
+   MEASUREMENT THAT SHAPED THE DESIGN: all 13 vendored shots are DARK-TONED
+   apps (near-black canvases, white line-work — measured 2026-09-01), not
+   the light panels the ignition brief guessed. So the LIT SCREEN is
+   carried by the FRAME, never by faked image brightness: a hairline chrome
+   frame let into the plate's face, a recessed unlit well behind the lazy
+   bytes (the screen's "off" state is designed, never a blank hole), a
+   faint chrome emission off the glass, and crimson ignition on
+   hover/keyboard intent — the wall's one active accent, spent exactly
+   where it is everywhere else on this page: the machine answering
+   presence. The global scanline overlay (tokens.css) already crosses the
+   screens, so the imagery sits under the same machine texture.
+
+   ANATOMY (image-led): the screen runs FULL-BLEED to the plate's top and
+   side edges — a panel let into the nameplate's face, not an inset
+   thumbnail — and dominates the plate's upper mass; title / one-liner /
+   tags / links settle below in the unchanged engraved treatment, with
+   more space above the title than below it (craft floor). The data's
+   intrinsic width/height attrs reserve the box, so image bytes cost zero
+   layout (CLS 0 — measured in the V2 harness); js/render.js promotes the
+   screens that sit in the INITIAL viewport to loading="eager" +
+   fetchpriority="high" so the first row never lazy-pops.
+
+   FALLBACK (image-less plate — the V1 fallback path): the same window as
+   an UNLIT SCREEN — an emblem block in the screen's own 1312:820 grammar
+   (the universal shot ratio, the wall's documented screen shape) with one
+   dim crimson diamond seated at its center: the "marked" grade (hollow
+   crimson, unlit — B4's chip language), pure CSS, on-world. Engines
+   without :has() keep the v1 anatomy (graceful: the emblem simply does
+   not appear).
+
+   NEW text pairs introduced by V2: NONE — the anatomy's words keep their
+   fields and logged ratios exactly (title chrome/plate 10.43:1, one-liner
+   chrome-dim/plate 5.32:1, tags chrome-dim/well 6.11:1, LIVE chrome/plate
+   10.43:1, SOURCE chrome-dim/plate 5.32:1). No text is ever set on or
+   over the imagery. NEW non-text: (a) the resting screen frame —
+   --rule-strong chrome hairline, the B3 mortar's own alpha class,
+   decorative framing like every plate rule; (b) the crimson hover frame
+   rgba(229,56,59,0.6) on --plate blends to ~2.2:1 and is DECORATIVE TINT
+   under the logged B4 rule (chip frames) — the interactive state stays
+   carried by the links' solid crimson diamond (3.74:1 on plate) and the
+   global :focus-visible ring (3.74:1 plate / 4.60:1 ground), both >= 3:1,
+   WCAG 1.4.11; (c) the fallback diamond — solid-stroke hollow crimson on
+   --well 4.28:1 (the B4 marked grade, logged). Motion budget kept: the
+   one V2 transition is border-color + box-shadow (both in B5's allowed
+   list), intent-only, killed under prefers-reduced-motion below.
+   ========================================================================== */
+
+/* --- The lit screen -------------------------------------------------------- */
+
+.plate-screen {
+  /* Full-bleed into the plate: negative margins cancel the plate's
+     --space-md padding on three sides, so the frame's own hairline
+     becomes the plate's visible edge up there. The screen sits FIRST in
+     the plate (js/render.js), so it owns the upper mass. */
+  margin: calc(-1 * var(--space-md)) calc(-1 * var(--space-md))
+    var(--space-2xs);
+  /* The unlit screen: recessed well glass with a shaded top lip (the
+     engraved dark-lip convention, read as screen glass) and a faint
+     chrome emission so the window reads ON even before the lazy bytes
+     land. Zero-offset halo alone would be decoration — the emission
+     rides a frame + inset shade system, it does not stand alone. */
+  background: var(--well);
+  border: var(--hairline) solid var(--rule-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(201, 211, 221, 0.07),
+    inset 0 0 22px rgba(0, 0, 0, 0.35),
+    0 0 16px rgba(201, 211, 221, 0.05);
+  /* B5's budget: border-color + box-shadow only (paint properties, no
+     layout); intent-fired, matching the plate's own glow timing. */
+  transition:
+    border-color 0.25s ease-out,
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Frame ignition on intent: the chrome hairline goes crimson and the
+   emission ignites — the screen answers the same presence that raises
+   the plate's ember (section 3). Paint-only, snapped under
+   prefers-reduced-motion. */
+.plate:hover > .plate-screen,
+.plate:focus-within > .plate-screen {
+  border-color: rgba(229, 56, 59, 0.6); /* decorative tint — see header */
+  box-shadow:
+    inset 0 1px 0 rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(201, 211, 221, 0.07),
+    inset 0 0 22px rgba(229, 56, 59, 0.1),
+    0 0 22px rgba(229, 56, 59, 0.3);
+}
+
+/* The shot itself: the intrinsic width/height attrs (data-driven) hold
+   the aspect ratio, so width:100% + height:auto reserves the exact box
+   before the bytes arrive — zero CLS. object-fit:cover is inert while
+   the box keeps the attr ratio (it is 1312:820 for every current shot)
+   and guards a future off-ratio entry from squashing. */
+.plate-shot {
+  display: block; /* kill the inline baseline gap inside the frame */
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* --- The unlit-screen fallback (image-less plate) ---------------------------
+   One pseudo-element draws the whole emblem: the well block in the
+   screen's 1312:820 shape, plus a centered hollow crimson diamond as an
+   authored inline-SVG background (geometry — the world's drawn-marker
+   system; data URI is same-document, zero requests). The block is in
+   flow (a flex child of the plate, first in source order), so it pushes
+   the anatomy down exactly like a real screen would. */
+.plate:not(:has(> .plate-screen))::before {
+  content: "";
+  display: block;
+  aspect-ratio: 1312 / 820; /* the wall's screen grammar (all current shots) */
+  margin: 0 0 var(--space-xs);
+  background-color: var(--well);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11'%3E%3Crect x='2.5' y='2.5' width='6' height='6' fill='none' stroke='%23e5383b' transform='rotate(45 5.5 5.5)'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  border: var(--hairline) solid var(--rule-on-plate);
+  box-shadow:
+    inset 0 1px 0 rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(201, 211, 221, 0.07),
+    inset 0 0 22px rgba(0, 0, 0, 0.35);
+}
+
+/* --- prefers-reduced-motion: V2's one transition, killed ------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .plate-screen {
+    transition: none; /* states snap; every state is fully readable */
+  }
+}
+
+/* ==========================================================================
+   11. V3 — THE LIVING HERO FIELD (task V3, IRON MAN + THOR)
+   --------------------------------------------------------------------------
+   The first viewport's ground, alive (V2 contract FIRST VIEWPORT: "crimson
+   particle field breathing behind the chrome wordmark (canvas, subtle,
+   never obscuring)"). js/field.js paints two layers into the markup-declared
+   <canvas id="hero-field"> — pooled crimson embers + chrome motes with a
+   slow sway/twinkle and pointer parallax, and one luminous scan sweep
+   crossing top-to-bottom every ~10.5s — since V2-1 the heartbeat cycle:
+   3.2s pass, 1.8s dark, one quieter echo pass over the same path at
+   0.42x gain, 2.1s dark, so the darkest rest is ~2.1s (the power-on pass
+   orchestrated with the B5 count-up by motion.js ->
+   window.ULTRON_FIELD.ignite()).
+
+   STACKING (the whole CSS contract for this task — the canvas is absolute,
+   full-width, spanning document top to the counter band's foot via the
+   inline height js/field.js sets; CSS height:100% is the no-JS fallback
+   and an empty canvas paints nothing):
+     - canvas z-index 2 — ABOVE the counter band: #stats/.stats-band carry
+       clip-path (the chamfer), which makes each an atomic stacking unit
+        painted with z:auto, i.e. BELOW any positive z-index sibling-group
+       member — so the sweep is allowed to cross the band visibly, its wash
+       passing under the numerals for ~0.9s (worst case ~7.5:1 vs the
+       10.43:1 chrome/plate baseline; measured on rendered pixels in the V3
+       harness — the floors hold, the field stays background texture).
+     - .hero-wordmark / .hero-category z-index 3 — the stamped lettering
+       and the category line paint ABOVE the canvas: no particle, no sweep,
+       ever tints those letterforms. The field shows in the open ground
+       between and around them (js/field.js additionally dims + shrinks
+       motes inside the measured wordmark/category y-bands to 0.35x/0.6x
+       and over the band region to 0.45x/0.75x — restraint is layered).
+     - .skip-link z-index 4 — the D1 skip link is positioned but was
+       z:auto; without this it would paint under the canvas when focused.
+
+   NO text pairs change: every word keeps its field and ratio (the canvas
+   never sets text, and the pairs' effective backgrounds were re-measured
+   WITH the field behind/over them in the V3 harness — wordmark/category
+   zones read within noise of #0b0d10; see the production log). Motion
+   budget: this section animates NOTHING via CSS — the field is canvas
+   (one rAF loop in js/field.js, paused off-screen/tab-hidden, DPR capped
+   at 2), and prefers-reduced-motion never starts the loop at all (one
+   static painted frame instead — the hero looks complete without motion).
+   ========================================================================== */
+
+/* The containing block for the field canvas (absolute, inset from top). */
+#hero {
+  position: relative;
+}
+
+#hero-field {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* no-JS fallback; js/field.js sets the real region height */
+  display: block;
+  z-index: 2;
+  pointer-events: none; /* decorative ground: never intercepts anything */
+}
+
+/* The stamped lettering paints above the field — the wordmark stays king. */
+.hero-wordmark,
+.hero-category {
+  position: relative;
+  z-index: 3;
+}
+
+/* The skip link must outrank the canvas when it stamps in on focus (it was
+   positioned z:auto — tree order cannot save it from a positive z-index). */
+.skip-link {
+  z-index: 4;
+}
+
+/* ==========================================================================
+   12. V4 — SCROLL IGNITION: staggered plate rise, frieze pulse, section
+   reveals (task V4, THOR — the motion-craft lane)
+   --------------------------------------------------------------------------
+   The wall's power-on (V2 contract, memorable moment V2: "thirteen real
+   screens lighting up in sequence as you scroll — the proof made visible").
+   ONE grammar with the B5/V3 moments — rise + ignite, on the tokens'
+   single --ease-ignite curve — extending the opening power-on (field sweep
+   + count-up) down the page:
+
+     - PLATES rise once as they enter view: translate 0 12px -> none +
+       opacity 0 -> 1 over --dur-rise, staggered 55ms in DOM/grid order
+       by js/motion.js's single drain queue (a slow scroll cascades row
+       by row; a fast scroll plays the whole power-on at once).
+     - FRIEZE nodes keep B5's lineage-order ignition and gain a PULSE:
+       each node flares (.is-pulse — the 9px diamond scales, its crimson
+       glow blooms) and settles to the lit state ~460ms later; successive
+       flares 60ms apart read as one crimson pulse traveling the spine.
+     - ROSTER band + FOOTER plate take ONE quiet rise each on first view
+       (--dur-rise-band, 16px — the plates' grammar, larger and slower).
+
+   CHANNEL DISCIPLINE: the rises use the individual `translate` property
+   (transform-family, compositor-driven) so hover keeps `transform` — the
+   two compose and never fight over timing; `translate`/`transform` and
+   opacity are the only motion properties added by this section, plus the
+   pulse's box-shadow flare (paint-only, B5's vetted class). ZERO layout
+   properties anywhere; the rises reserve nothing and shift nothing
+   (CLS stays 0 — the images' width/height attrs own the boxes).
+
+   PROGRESSIVE ENHANCEMENT — the hard rule: NO content is hidden awaiting
+   CSS. Every pre-rise offset lives ONLY under two arming classes that
+   js/motion.js adds in the same DOMContentLoaded task as the render,
+   immediately before their observers start: `.wall-armed` on the wall
+   grid and `body.motion-armed`. No-JS, no-IO and reduced-motion never
+   arm — those pages render every plate, the roster and the footer fully
+   visible, and no flash of hidden content can occur on slow devices
+   (the classes land before the observers' first callback, and the
+   reduced-motion media query below kills the transitions besides).
+   ========================================================================== */
+
+/* --- Plate ignition: the rise ---------------------------------------------- */
+
+/* Pre-ignition offset — ONLY under the arming class, ONLY until .is-risen.
+   The `translate` channel (not `transform`): hover's -2px lift composes
+   with it instead of competing for one transition. */
+.wall-armed .plate:not(.is-risen) {
+  translate: 0 12px;
+  opacity: 0;
+}
+
+/* The rise transition. While armed, this rule carries the plate's WHOLE
+   transition list (shorthand replaces section 7's), so the hover lift and
+   glow keep their B5 timings verbatim — mirrored here, same values, with
+   the rise channels prepended. After the last rise the list is inert
+   (translate/opacity never change again), so the arming class may simply
+   stay: one source of truth for the entrance, no disarm pass to race. */
+.wall-armed .plate {
+  transition:
+    translate var(--dur-rise) var(--ease-ignite),
+    opacity var(--dur-rise) var(--ease-ignite),
+    transform 0.15s ease-out,
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* --- Frieze pulse: the traveling flare ---------------------------------------
+   Rides B5's lineage ignition (section 7 lights the node crimson). The
+   flare: the diamond scales and its glow blooms, then settles back to the
+   lit state when js/motion.js drops .is-pulse ~460ms later — a crimson
+   pulse crossing the spine one node at a time. transform on the existing
+   rotate(45deg) + paint-only shadow; the node box is fixed at 9px. */
+.milestone::before {
+  transition:
+    background-color 0.35s ease-out,
+    border-color 0.35s ease-out,
+    box-shadow 0.35s ease-out,
+    transform 0.35s var(--ease-ignite);
+}
+.milestone.is-pulse::before {
+  transform: rotate(45deg) scale(1.45);
+  box-shadow: 0 0 16px rgba(229, 56, 59, 0.95);
+}
+
+/* --- Section reveals: one quiet rise each -------------------------------------
+   The roster band and the footer plate — the counter band and hero own
+   the opening power-on and are deliberately untouched. Same grammar as
+   the plates, larger and slower (16px, --dur-rise-band). Gated behind
+   body.motion-armed exactly as the wall is behind .wall-armed. */
+body.motion-armed .roster-band:not(.is-risen),
+body.motion-armed .footer-plate:not(.is-risen) {
+  translate: 0 16px;
+  opacity: 0;
+}
+body.motion-armed .roster-band,
+body.motion-armed .footer-plate {
+  transition:
+    translate var(--dur-rise-band) var(--ease-ignite),
+    opacity var(--dur-rise-band) var(--ease-ignite);
+}
+
+/* --- prefers-reduced-motion: V4's transitions, killed -------------------------
+   js/motion.js never arms under the preference (and disarms on a live
+   switch); this block is the belt-and-braces CSS half — the arming-gated
+   selectors outrank section 7's plain-.plate kill on specificity, and this
+   section's own .milestone::before re-declaration outranks section 7's kill
+   on source order, so every V4-touched selector is named here explicitly.
+   Every state snaps; all content fully readable, nothing offset. */
+@media (prefers-reduced-motion: reduce) {
+  .wall-armed .plate,
+  .milestone::before,
+  body.motion-armed .roster-band,
+  body.motion-armed .footer-plate {
+    transition: none;
+  }
+  .wall-armed .plate:not(.is-risen),
+  body.motion-armed .roster-band:not(.is-risen),
+  body.motion-armed .footer-plate:not(.is-risen) {
+    translate: none;
+    opacity: 1;
+  }
 }

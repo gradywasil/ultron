@@ -127,6 +127,58 @@
     return typeof value === "string" && /^https?:\/\/\S+$/i.test(value);
   }
 
+  /* V2 — the lit-screen window. Builds the plate's screen (a <div
+     class="plate-screen"> wrapper holding the <img class="plate-shot">)
+     from an entry's OPTIONAL image fields, or null when the entry has
+     none (the loader strips wrong-type values; this guard also covers a
+     renderer handed unvalidated data — ULTRON_RENDER re-runs, test
+     copies, etc.). The wrapper is css/styles.css section 10's styling
+     hook for the lit-screen framing (frame, unlit well, ignition); the
+     img carries loading="lazy" + decoding="async" (below-fold screens
+     never block) and the data-provided intrinsic width/height
+     attributes so the browser reserves the box before the bytes arrive —
+     no CLS, and no file reads at runtime. Only positive integers become
+     attributes: a hand-edited bad dim loses its attr, never breaks the
+     plate. Built as elements with .src — never innerHTML. */
+  function plateShot(build) {
+    if (typeof build.image !== "string" || build.image.trim() === "") return null;
+    function dim(value) {
+      return typeof value === "number" && isFinite(value) && value > 0 && Math.floor(value) === value;
+    }
+    var img = document.createElement("img");
+    img.className = "plate-shot";
+    img.src = build.image;
+    img.alt = build.title + " — experiment screenshot";
+    img.loading = "lazy";
+    img.decoding = "async";
+    if (dim(build.imageWidth)) img.setAttribute("width", String(build.imageWidth));
+    if (dim(build.imageHeight)) img.setAttribute("height", String(build.imageHeight));
+    var screen = el("div", "plate-screen");
+    screen.appendChild(img);
+    return screen;
+  }
+
+  /* V2 — above-fold promotion. Screens that sit in the INITIAL viewport
+     must not lazy-defer into a visible pop: right after render (deferred
+     script, before first paint settles) every shot whose top edge is
+     already inside the viewport is promoted to loading="eager" +
+     fetchpriority="high", so the first row decodes with the rest of the
+     first paint. Everything below the fold keeps loading="lazy". Runs
+     once, synchronously, at render time — no observers, no scroll
+     handlers (V4 owns scroll behavior). The one forced layout is the
+     whole cost. */
+  function promoteAboveFoldShots() {
+    var view = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!view) return;
+    var shots = document.querySelectorAll("img.plate-shot");
+    for (var i = 0; i < shots.length; i++) {
+      if (shots[i].getBoundingClientRect().top < view) {
+        shots[i].setAttribute("loading", "eager");
+        shots[i].setAttribute("fetchpriority", "high");
+      }
+    }
+  }
+
   /* Degraded-mount element: one line, names problem + recovery. Styling is
      C1's job; the class + role are the contract. */
   function emptyState(message) {
@@ -240,6 +292,17 @@
       var plate = el("article", "plate");
       plate.id = "plate-" + build.id;
       plate.setAttribute("data-build", build.id);
+
+      /* V2: the lit screen, FIRST in the plate — the redesign reads
+         image-first (css/styles.css section 10 frames it). plateShot()
+         returns the wrapper; an entry without a usable image gets
+         nothing here: the plate below is the styled fallback (css
+         section 10's :has()-gated unlit-screen emblem; engines without
+         :has() keep the v1 anatomy). */
+      var shot = plateShot(build);
+      if (shot !== null) {
+        plate.appendChild(shot);
+      }
 
       /* D1: the plate title is an h3 under the wall's h2 (heading system,
          see sectionHeading above; resolves A3 deviation #5). */
@@ -367,6 +430,10 @@
     if (rosterMount) renderRoster(rosterMount);
     if (friezeMount) renderFrieze(friezeMount, data.timeline);
     if (footerMount) renderFooter(footerMount);
+
+    /* V2: the wall (when it rendered) promotes its above-fold screens to
+       eager before the first paint settles — see promoteAboveFoldShots. */
+    if (wallMount) promoteAboveFoldShots();
   }
 
   /* Test/re-render hook (see header). */

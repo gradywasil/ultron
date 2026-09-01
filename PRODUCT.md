@@ -33,7 +33,7 @@ The only site that is simultaneously the advertisement and the proof: it showcas
 ## Capabilities and Constraints
 
 - Zero build step; no framework, no package manager, no trackers, no analytics.
-- All fonts and assets self-hosted; zero third-party runtime requests.
+- All fonts and assets self-hosted; zero third-party runtime requests. Real experiment imagery (the owner's own screenshots) is vendored in-repo and lazy-loaded with intrinsic dimensions.
 - Data-driven content: malformed/missing entries skip with a console warning; empty grids and missing images degrade to styled fallbacks — the page never renders broken.
 - `prefers-reduced-motion` disables glitch/particle/parallax; page fully readable without motion.
 - Animations transform/opacity-only (GPU); fast first paint despite the flash.
@@ -57,7 +57,7 @@ The only site that is simultaneously the advertisement and the proof: it showcas
 ## Product Principles
 
 1. **The proof is the product.** Every claim on the page is backed by a real shipped build one click away; promo voice never outruns verifiable facts.
-2. **Flash must never cost speed or access.** The futuristic mood is earned through craft (type, motion discipline, contrast), not heavy assets; motion is always optional.
+2. **Flash is the brief; access is the floor.** The site is deliberately visual-heavy — real imagery, a living canvas hero, orchestrated motion — and it stays fast and fully usable: lazy-loaded images with intrinsic dimensions, motion that dies cleanly under `prefers-reduced-motion`, contrast and keyboard paths never traded for spectacle.
 3. **The machine maintains itself.** Owner updates are data edits, never code edits; the page renders whatever truthful data it is given, gracefully.
 4. **Accurate or silent.** Roster and timeline copy stays traceable to the real skills; the family's actual lineage is dramatic enough without embellishment.
 

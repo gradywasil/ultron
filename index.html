@@ -14,16 +14,21 @@
   <script src="js/render.js" defer></script>
   <!-- B5 motion system: defer keeps order data -> loader -> renderer -> motion. -->
   <script src="js/motion.js" defer></script>
+  <!-- V3 living hero field: defer keeps it after motion.js — the count-up's
+       observer can only fire after every DOMContentLoaded listener has run,
+       so window.ULTRON_FIELD exists before motion.js can call ignite(). -->
+  <script src="js/field.js" defer></script>
 </head>
 <body>
   <!--
-    Direction contract (locked — .impeccable/surfaces/index-html.md, key 4cf1bce5)
+    Direction contract — V2 IGNITION (.impeccable/surfaces/index-html.md,
+    "V2 direction contract (supersedes the v1 five-blocks ...)"; v1 key 4cf1bce5)
 
-    - THESIS: The page is a monument to shipped work — thirteen engraved nameplates packed wall-to-wall under monumental counters — refusing the category-default stacked marketing bands and card-grid-with-hero arrangement.
-    - OWN-WORLD: near-black `#0b0d10` ground, gunmetal `#1d232b` plate fields, chrome `#c9d3dd` engraved type, crimson `#e5383b` glow as the single active accent; scanline overlay; engraved/plate component language (nameplates, dedications, friezes — no soft cards, no drop-shadow card chrome).
-    - STORY: visitor reads the counters (scale), scans the wall (proof, one click per plate), reads the dedications (the six coordinators), walks the frieze (growth over time), exits through the footer plate.
-    - FIRST VIEWPORT: chrome wordmark "THE ULTRON INITIATIVE" stamped across the top; monumental counter band beneath it (6 COORDINATORS · 4 AUTONOMOUS MODES · 13 BUILDS SHIPPED · ∞ MANUAL WORK ELIMINATED); first crimson-lit nameplates glinting at the fold line.
-    - FORM: Honor-Roll Wall, dealt position 5 of seven grounded structures, seed key `e8d349a0`.
+    - THESIS: The monument ignites — the same engraved honor-roll wall, now alive: every plate carries the real face of the build it honors, and the ground itself breathes crimson. Still refusing stacked marketing bands and soft-card grids; the refusal now has a pulse.
+    - OWN-WORLD: unchanged identity (near-black `#0b0d10`, gunmetal `#1d232b`, chrome `#c9d3dd`, crimson `#e5383b` single active accent, scanlines, engraved plates) PLUS the visual layer: vendored real experiment screenshots framed as lit screens in the dark (hairline chrome frames, on-world hover treatment), and a canvas-driven crimson particle/scan field that lives behind the hero without upstaging the wordmark.
+    - STORY: visitor lands in a living field (the machine is on), reads the counters (scale), scans an image-led wall (proof you can SEE, one click per plate), reads the dedications, walks the frieze as it sweeps, exits through the footer plate.
+    - FIRST VIEWPORT: crimson particle field breathing behind the chrome wordmark "THE ULTRON INITIATIVE" (canvas, subtle, never obscuring); category line; monumental counter band counting up; the first image-led plates glinting at the fold.
+    - FORM: Honor-Roll Wall ignited — v1 locked composition (key 4cf1bce5) + V2 ignition (user-locked options question, 2026-09-01).
     - FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
   -->
   <!-- C1: the machine speaks even when it cannot run. Every section below
@@ -49,6 +54,14 @@
        contentinfo. One h1 — the wordmark. A1 created no nav (single-page,
        no anchors) and none is added. -->
   <header id="hero">
+    <!-- V3: the living field's canvas — declared in markup and sized by
+         js/field.js from document top to the counter band's foot (inline
+         height; css/styles.css section 11 positions it under the
+         wordmark/counters with pointer-events none). Decorative ground,
+         never content: aria-hidden, and with scripting disabled it NEVER
+         initializes — an empty canvas renders nothing, so the no-JS hero
+         is the same static world (choice logged under task V3). -->
+    <canvas id="hero-field" aria-hidden="true"></canvas>
     <!-- B2: the wordmark stamp. #hero is B2's build (A3 never renders it);
          the text is static branding, not data content. D1 moved it out of
          <main> into this banner <header>; styles are id-based, unchanged. -->

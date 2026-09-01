@@ -69,10 +69,13 @@
   --glow-crimson-strong: 0 0 30px rgba(229, 56, 59, 0.38),
                          0 0 6px rgba(229, 56, 59, 0.55);
 
-  /* --- Type families (fallbacks per R1) ---------------------------------- */
-  --font-display: "Cinzel", "Times New Roman", serif;
-  --font-mono: "Martian Mono", ui-monospace, "Courier New", monospace;
-  --font-body: "EB Garamond", Georgia, serif;
+  /* --- Type families (fallbacks per R1; V5 inserts the metric-matched
+         local fallbacks between face and generic so the font-display swap
+         lands without reflow — see the @font-face block above) ------------- */
+  --font-display: "Cinzel", "Cinzel Fallback", "Times New Roman", serif;
+  --font-mono: "Martian Mono", "Martian Mono Fallback", ui-monospace,
+    "Courier New", monospace;
+  --font-body: "EB Garamond", "EB Garamond Fallback", Georgia, serif;
 
   /* --- Type scale ---------------------------------------------------------
      --size-counter is deliberately monumental beyond the generic 6rem
@@ -106,6 +109,18 @@
   /* Counter numerals: lining + tabular so the B5 count-up doesn't jitter  */
   --numeric-tabular: lining-nums tabular-nums;
 
+  /* --- Motion tokens (V4 scroll ignition) ----------------------------------
+     ONE grammar: rise + ignite. Every V4 entrance is a translate+opacity
+     rise on this single exponential-class ease-out (the same curve B5/V2
+     already used as a literal for glow lifts — now named), decelerating
+     from an already-composited state; glow progressions keep their own
+     shorter paint timings in styles.css sections 7/10/12. The individual
+     `translate` property is the rise channel so hover keeps `transform`
+     (the two compose; no timing conflict, no disarm pass needed).        */
+  --ease-ignite: cubic-bezier(0.22, 1, 0.36, 1); /* exponential-class out */
+  --dur-rise: 0.6s;        /* plate ignition rise (staggered 55ms steps)  */
+  --dur-rise-band: 0.8s;   /* section quiet rise (roster band, footer)     */
+
   --measure: 68ch;             /* body measure, craft floor 65-75ch         */
 
   /* --- Spacing scale (4px base; tight groups, generous separation) ------ */
@@ -134,6 +149,24 @@
 
 /* --- Vendored faces (OFL; upstream google/fonts, vendored via Fontsource
        5.3.0 latin subsets — sources + dates in production-log.md B1). ------ */
+/* LOADING STRATEGY: font-display is swap (self-hosted, ~75 KB total, arrives
+   in well under the block period on any real connection — the monument never
+   renders a page without its faces for long). V5 adds metric-matched LOCAL
+   FALLBACKS below so the swap moment itself stops re-laying-out the page:
+   before V5, the load-time swap moved the wordmark 8px and the counter
+   numerals 14px inside their fixed line boxes (fallback ascent/descent ≠
+   Cinzel's) and re-wrapped Garamond one-liners (Georgia is ~11% wider),
+   measuring up to 0.0095–0.0112 CLS on cold loads (V5 harness, 13 runs).
+   Each fallback is the SAME local face the stack already fell back to
+   (Times New Roman / Courier New / Georgia — every desktop OS ships them),
+   re-metricized to the vendored face's own advance widths and box metrics,
+   measured in-browser per face (V5 log entry): size-adjust matches glyph
+   advances (wraps and centered widths hold), ascent/descent-override match
+   the line-box baseline seat, line-gap-override normalizes to 0. local()
+   loads synchronously, so the fallback itself never swaps. Engines without
+   override support ignore the descriptors (today's behavior returns); the
+   unicode-ranges mirror the real faces so glyph routing (∞ falls through to
+   the next stack entry) is unchanged. */
 @font-face {
   font-family: "Cinzel";
   src: url("../assets/fonts/cinzel-latin-700-normal.woff2") format("woff2");
@@ -183,6 +216,86 @@
   font-weight: 500;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* --- Metric-matched local fallbacks (V5 — see LOADING STRATEGY above).
+       Values measured in-browser at 100px against the vendored faces and
+       cross-solved against rendered-geometry A/B (woff2 blocked vs loaded):
+       local() family-name binding resolves each system face's REGULAR cut
+       (declared 700/900/500 is then synthesized WITHOUT widening advances),
+       so the size-adjust ratios are real-face advances over the regular
+       cut's — Cinzel 700 caps+wordmark ≈1.1015, Cinzel 900 the counter
+       digits actually shown ("6413" tabular mix) 1.172, Martian Mono's
+       fixed advance 70 vs 60.01, EB Garamond a four-body-string average
+       0.8933. Ascent/descent reproduce each real face's 98/37, 100/20 and
+       101/30 box so the baseline seat inside fixed line-heights holds.
+       Committed as literals — remeasure if a face is ever re-vendored.
+       Same unicode-ranges as the real faces so the ∞ glyph still routes
+       past the family exactly as before. ------------------------------- */
+@font-face {
+  font-family: "Cinzel Fallback";
+  src: local("Times New Roman");
+  font-weight: 700;
+  font-style: normal;
+  size-adjust: 110.15%;
+  ascent-override: 88.98%;
+  descent-override: 33.59%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Cinzel Fallback";
+  src: local("Times New Roman");
+  font-weight: 900;
+  font-style: normal;
+  size-adjust: 117.2%;
+  ascent-override: 83.62%;
+  descent-override: 31.57%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Martian Mono Fallback";
+  src: local("Courier New");
+  font-weight: 400;
+  font-style: normal;
+  size-adjust: 116.65%;
+  ascent-override: 85.73%;
+  descent-override: 17.15%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Martian Mono Fallback";
+  src: local("Courier New");
+  font-weight: 700;
+  font-style: normal;
+  size-adjust: 116.65%;
+  ascent-override: 85.73%;
+  descent-override: 17.15%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "EB Garamond Fallback";
+  src: local("Georgia");
+  font-weight: 500;
+  font-style: normal;
+  size-adjust: 89.33%;
+  ascent-override: 113.05%;
+  descent-override: 33.58%;
+  line-gap-override: 0%;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
     U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
     U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;

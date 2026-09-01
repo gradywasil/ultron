@@ -35,7 +35,20 @@
   }
 
   /* Validates one ULTRON_BUILDS entry against the schema documented at the
-     top of data/builds.js. Returns the entry when valid, null otherwise. */
+     top of data/builds.js. Returns the entry when valid, null otherwise.
+
+     V1 optional image field: `image` is type-checked ONLY when present.
+     Absent, null, or undefined is the documented no-image state — no warn,
+     the renderer draws the plate without an image window. A present but
+     wrong-TYPE value (number, array, "" …) warns like any other field but
+     does NOT skip the entry: the field is stripped from a shallow copy and
+     the plate still renders, image-less. One bad edit degrades the window,
+     never the nameplate — less destructive than the required-field rule;
+     decision logged under task V1 in the production log. The raw global is
+     never mutated (the copy is local to the validated view).
+     imageWidth/imageHeight stay unchecked here by scope: the renderer sets
+     those attributes only for positive integers, so a bad hand edit can
+     only lose the attrs, never break the plate. */
   function validateBuild(entry, index) {
     var problems = [];
     if (!isPlainObject(entry)) {
@@ -58,7 +71,23 @@
         ' in data/builds.js — invalid field(s): ' + problems.join(", "));
       return null;
     }
-    return entry;
+    /* V1: sanitize a present-but-invalid optional `image` (see header). */
+    var validated = entry;
+    var hasImage = Object.prototype.hasOwnProperty.call(entry, "image") &&
+      entry.image !== null && typeof entry.image !== "undefined";
+    if (hasImage && !isNonEmptyString(entry.image)) {
+      console.warn('[ultron data] build entry ' + entryLabel(entry, index) +
+        ' in data/builds.js — invalid optional field: image (expected non-empty string, got ' +
+        (Array.isArray(entry.image) ? "array" : typeof entry.image) +
+        '); treating as absent — the plate renders without an image window');
+      validated = {};
+      for (var key in entry) {
+        if (Object.prototype.hasOwnProperty.call(entry, key) && key !== "image") {
+          validated[key] = entry[key];
+        }
+      }
+    }
+    return validated;
   }
 
   /* Validates one ULTRON_TIMELINE milestone against the schema documented
