@@ -137,6 +137,14 @@
   --gutter: clamp(1.25rem, 4vw, 3rem);        /* page gutter               */
   --section-gap: clamp(4rem, 9vw + 1rem, 9rem); /* between monument blocks */
 
+  /* --- Staged-console tokens (V4 W1 — styles.css section 14) ---------------
+     One viewport per stage: vertical breathing INSIDE a stage, scaled to the
+     stable small viewport height so short laptops condense and tall screens
+     open up without a media-query ladder. The old --section-gap keeps its
+     meaning wherever stacked rhythm survives (the frieze's interior, the
+     noscript page). */
+  --stage-pad: clamp(0.75rem, 2svh, 2.5rem);   /* in-stage vertical padding  */
+
   /* --- Scanline overlay ---------------------------------------------------
      Committed-world texture (OWN-WORLD block). A fixed, non-interactive
      pseudo-element paints 1px dark lines every 3px: visible as faint

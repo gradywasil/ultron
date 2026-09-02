@@ -3,6 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- V4 W1: stage the console BEFORE first paint. This one inline line is
+       the page's only head-level JS (zero-build holds; same-document, zero
+       requests). The `staged` class arms the snap architecture in
+       css/styles.css section 14 — scroll-snap on the root scroller + the
+       100svh stage sizing. With scripting disabled the class never lands,
+       so the no-JS page degrades exactly as before: plain stacked
+       auto-height sections that scroll normally (the V4 amendment's
+       documented no-JS contract — see the noscript note below). -->
+  <script>document.documentElement.classList.add("staged");</script>
   <title>The Ultron Initiative</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="css/tokens.css">
@@ -12,23 +21,39 @@
   <script src="js/main.js" defer></script>
   <!-- A3 render pipeline: defer keeps order data -> loader -> renderer. -->
   <script src="js/render.js" defer></script>
-  <!-- B5 motion system: defer keeps order data -> loader -> renderer -> motion. -->
+  <!-- V4 W1 stage console: HUD spine, active-stage tracking, hash deep-links.
+       Loaded AFTER render.js (its boot needs the rendered wall pages) and
+       BEFORE js/motion.js + js/field.js — V4 W2 ORDER: with defer, each
+       module boots at its own evaluation (readyState is already
+       "interactive", so the DOMContentLoaded listeners below never fire in
+       the normal load), and motion.js's init must find ULTRON_STAGES
+       already tracked to take the stage-choreography path (it also pulls
+       the active stage directly at init, so the boot order is belt-and-
+       braces); field.js reads the tracked active stage the same way. -->
+  <script src="js/stages.js" defer></script>
+  <!-- B5 motion system: defer keeps order data -> loader -> renderer -> stages
+       -> motion -> field. -->
   <script src="js/motion.js" defer></script>
-  <!-- V3 living hero field: defer keeps it after motion.js — the count-up's
-       observer can only fire after every DOMContentLoaded listener has run,
-       so window.ULTRON_FIELD exists before motion.js can call ignite(). -->
+  <!-- V3 living hero field: defer keeps it last — the count-up's observer can
+       only fire after every module has evaluated, so window.ULTRON_FIELD
+       exists before motion.js can call ignite().
+       V4 W1: the field is now a full-viewport FIXED backdrop behind every
+       stage (styles.css section 14); stages.js' active-stage tracking feeds
+       its restraint zones. -->
   <script src="js/field.js" defer></script>
 </head>
 <body>
   <!--
-    Direction contract — V2 IGNITION (.impeccable/surfaces/index-html.md,
-    "V2 direction contract (supersedes the v1 five-blocks ...)"; v1 key 4cf1bce5)
+    Direction contract — V4 THE ONE INTERFACE (.impeccable/surfaces/index-html.md,
+    "V2 direction contract (supersedes the v1 five-blocks ...)"; v1 key 4cf1bce5;
+    the V4 staged delivery amends STORY + FORM only — THESIS, OWN-WORLD and
+    FIRST VIEWPORT stand verbatim from the V2 ignition)
 
     - THESIS: The monument ignites — the same engraved honor-roll wall, now alive: every plate carries the real face of the build it honors, and the ground itself breathes crimson. Still refusing stacked marketing bands and soft-card grids; the refusal now has a pulse.
     - OWN-WORLD: unchanged identity (near-black `#0b0d10`, gunmetal `#1d232b`, chrome `#c9d3dd`, crimson `#e5383b` single active accent, scanlines, engraved plates) PLUS the visual layer: vendored real experiment screenshots framed as lit screens in the dark (hairline chrome frames, on-world hover treatment), and a canvas-driven crimson particle/scan field that lives behind the hero without upstaging the wordmark.
-    - STORY: visitor lands in a living field (the machine is on), reads the counters (scale), scans an image-led wall (proof you can SEE, one click per plate), reads the dedications, walks the frieze as it sweeps, exits through the footer plate.
+    - STORY: the monument becomes a single console — stages swap, the field persists. The visitor lands in a living field (the machine is on), reads the counters (scale), pages the image-led wall one viewport at a time (proof you can SEE, one click per plate), reads the dedications, walks the frieze as it sweeps, exits through the footer plate. Real scrolling stays the input — mandatory snap makes every stage exactly one viewport, and the persistent field sells the illusion that nothing scrolls away.
     - FIRST VIEWPORT: crimson particle field breathing behind the chrome wordmark "THE ULTRON INITIATIVE" (canvas, subtle, never obscuring); category line; monumental counter band counting up; the first image-led plates glinting at the fold.
-    - FORM: Honor-Roll Wall ignited — v1 locked composition (key 4cf1bce5) + V2 ignition (user-locked options question, 2026-09-01).
+    - FORM: Honor-Roll Wall ignited — v1 locked composition (key 4cf1bce5) + V2 ignition (user-locked options question, 2026-09-01), delivered since V4 (2026-09-01) as one staged console: mandatory-snap 100svh stages (HERO / WALL pages / ROSTER / FRIEZE / FOOTER), a full-viewport persistent canvas field behind them, a crimson HUD spine of stage ticks, and hash deep-links per stage.
     - FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
   -->
   <!-- C1: the machine speaks even when it cannot run. Every section below
@@ -38,7 +63,7 @@
        with scripting enabled <noscript> content is never shown. -->
   <!-- D1: the skip link is the page's FIRST focusable element. It is
        visually hidden until focused (css section 9) and jumps straight to
-       the wall — the content itself — past the wordmark and the counters.
+       the wall — the first wall PAGE — past the wordmark and the counters.
        A plain anchor: it works with scripting disabled too. -->
   <a class="skip-link" href="#wall">Skip to the wall</a>
   <noscript>
@@ -46,47 +71,74 @@
          degraded passage in caps reads as shouting (the critique's
          all-caps-body finding); the transform came off in css section 8.
          Problem + recovery kept honest: JavaScript off, page empty, turn
-         it on. -->
+         it on. V4 W1: with scripting disabled the `staged` class never
+         lands (head script above), so what follows degrades to plain
+         stacked sections that scroll normally — no snap, no spine. -->
     <p class="noscript-notice">The machine renders this monument — JavaScript carves every section from data. Your browser declines it, so the wall stands unassembled. Enable JavaScript, and it rises.</p>
   </noscript>
-  <!-- D1 landmarks: the wordmark stamp is the page banner (a body-level
-       <header>); <main> holds the monument proper; the footer is the
-       contentinfo. One h1 — the wordmark. A1 created no nav (single-page,
-       no anchors) and none is added. -->
-  <header id="hero">
+  <!-- D1 landmarks (V4 W1 amendment): the wordmark stamp is still the page
+       banner (a body-level <header>); the footer is the contentinfo. One
+       h1 — the wordmark. Two V4 changes, both logged: (1) the counter band
+       (#stats) moved INTO the banner — the hero STAGE is wordmark +
+       category + counters in one viewport; (2) js/stages.js appends a
+       <nav class="spine"> at the end of <body> once the stages exist —
+       the V4 stage-navigation landmark (A1's "no nav" note described a
+       page with nothing to navigate; V4 gives it stages). -->
+  <header id="hero" class="stage stage-hero">
     <!-- V3: the living field's canvas — declared in markup and sized by
-         js/field.js from document top to the counter band's foot (inline
-         height; css/styles.css section 11 positions it under the
-         wordmark/counters with pointer-events none). Decorative ground,
-         never content: aria-hidden, and with scripting disabled it NEVER
-         initializes — an empty canvas renders nothing, so the no-JS hero
-         is the same static world (choice logged under task V3). -->
+         js/field.js. V4 W1: position:fixed, full viewport, BEHIND every
+         stage (css/styles.css section 14) — the machine stays on while
+         stages swap. Decorative ground, never content: aria-hidden, and
+         with scripting disabled it NEVER initializes — an empty canvas
+         renders nothing, so the no-JS hero is the same static world. -->
     <canvas id="hero-field" aria-hidden="true"></canvas>
-    <!-- B2: the wordmark stamp. #hero is B2's build (A3 never renders it);
-         the text is static branding, not data content. D1 moved it out of
-         <main> into this banner <header>; styles are id-based, unchanged.
-         V3-B: data-text is the CSS glitch layers' copy source (styles.css
-         section 13 draws two aberration pseudo-copies from it with EMPTY
-         ALT — the accessible name stays the one real text node below).
-         KEEP data-text IN SYNC with the text if the wordmark ever
-         changes; a desync degrades to a harmless mismatched burst. -->
-    <h1 class="hero-wordmark" data-text="The Ultron Initiative">The Ultron Initiative</h1>
-    <!-- R2 ($impeccable clarify): the one plain-language line — what the
-         family is, in the machine's readout voice. Static branding like the
-         wordmark above it; styled in css section 1 (.hero-category); a plain
-         <p>, no heading, no landmark. -->
-    <p class="hero-category">A family of agent-coordination skills that builds and ships software — and proves it.</p>
+    <!-- V4 W1: the lintel wrapper. The double-rule lintel brackets the
+         WORDMARK (its designed furniture, css section 1); grouping the
+         stamp + category keeps the rules there now that the hero stage
+         also carries the counter band below them. -->
+    <div class="hero-lintel">
+      <!-- B2: the wordmark stamp. #hero is B2's build (A3 never renders it);
+           the text is static branding, not data content. D1 moved it out of
+           <main> into this banner <header>; styles are id-based, unchanged.
+           V3-B: data-text is the CSS glitch layers' copy source (styles.css
+           section 13 draws two aberration pseudo-copies from it with EMPTY
+           ALT — the accessible name stays the one real text node below).
+           KEEP data-text IN SYNC with the text if the wordmark ever
+           changes; a desync degrades to a harmless mismatched burst. -->
+      <h1 class="hero-wordmark" data-text="The Ultron Initiative">The Ultron Initiative</h1>
+      <!-- R2 ($impeccable clarify): the one plain-language line — what the
+           family is, in the machine's readout voice. Static branding like the
+           wordmark above it; styled in css section 1 (.hero-category); a plain
+           <p>, no heading, no landmark. -->
+      <p class="hero-category">A family of agent-coordination skills that builds and ships software — and proves it.</p>
+    </div>
+    <!-- V4 W1: the counter band is the hero stage's lower half — the first
+         viewport owns the power-on (field sweep + count-up) as one moment.
+         js/render.js fills this mount from data exactly as before; only its
+         parent changed (main -> banner, logged). -->
+    <section id="stats"></section>
   </header>
   <main>
-    <section id="stats"></section>
+    <!-- V4 W1: #wall is the FIRST wall page (skip-link target, tabindex per
+         D1 below). js/render.js paginates the validated builds into wall
+         PAGE stages at the live viewport tier (>=1280px: 3-col x 2-row
+         pages of six, the 13th screen a full-stage featured finale) and
+         inserts the later pages (#wall-2, #wall-3, ...) as
+         .stage.stage-wall siblings after this one. -->
     <!-- D1: tabindex="-1" lets the skip link move real focus onto the wall
          (anchors alone scroll but do not focus); the section's own outline
          is suppressed in css section 9 — it is a programmatic target, not a
          tab stop. -->
-    <section id="wall" tabindex="-1"></section>
-    <section id="roster"></section>
-    <section id="frieze"></section>
+    <section id="wall" class="stage stage-wall" tabindex="-1"></section>
+    <section id="roster" class="stage stage-roster"></section>
+    <section id="frieze" class="stage stage-frieze"></section>
   </main>
-  <footer id="footer"></footer>
+  <!-- V4 W1: the footer STAGE carries the page's last inscription inside it —
+       one viewport, one snap point, everything on it visible at rest (an
+       element after the last stage sits below the console's final fold,
+       reachable only by a deliberate extra gesture; measured: anchorTop 900
+       of 900 at the FOOTER rest position, visible only at max scroll). -->
+  <footer id="footer" class="stage stage-footer">
+  </footer>
 </body>
 </html>

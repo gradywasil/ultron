@@ -1,98 +1,63 @@
 "use strict";
 /* ==========================================================================
-   The Ultron Initiative — the living hero field (task V3, IRON MAN + THOR)
+   The Ultron Initiative — the living field (task V3, IRON MAN + THOR;
+   V4 W1: the PERSISTENT full-viewport backdrop)
    --------------------------------------------------------------------------
-   THE FIRST VIEWPORT'S GROUND, ALIVE (surface brief V2 contract, FIRST
-   VIEWPORT block: "crimson particle field breathing behind the chrome
-   wordmark (canvas, subtle, never obscuring)"; OWN-WORLD: "a canvas-driven
-   crimson particle/scan field that lives behind the hero without upstaging
-   the wordmark"). One absolutely positioned <canvas id="hero-field">
-   (declared in index.html, aria-hidden, pointer-events none) spans the hero
-   REGION — document top to the counter band's foot, never the page — and
-   paints exactly two registered layers:
+   THE CONSOLE'S GROUND, ALIVE (surface brief V2 contract, FIRST VIEWPORT
+   block: "crimson particle field breathing behind the chrome wordmark
+   (canvas, subtle, never obscuring)"; OWN-WORLD: "a canvas-driven crimson
+   particle/scan field that lives behind the hero without upstaging the
+   wordmark"). Since V4 W1 the canvas is POSITION:FIXED and spans the
+   VIEWPORT for the whole document (css/styles.css section 14) — behind
+   every stage's content, above the ground: the machine stays on while
+   stages swap; that continuity is the "no scrolling" illusion. The same
+   two registered layers paint as before:
 
      1. THE FIELD — a pooled particle system: crimson embers rising slowly
         with a sinusoidal sway and a per-mote twinkle, plus a minority of
-        faint chrome motes. V2-1 deepened the sway amplitude and the
-        twinkle depth a shade for the steady state (peaks unchanged; rise
-        and recycle cadence untouched — the ground breathes deeper, not
-        faster). Palette discipline holds: every color is an rgba
-        alpha of the pinned crimson (229,56,59) or chrome (201,211,221) —
-        no off-world hue. Slight parallax: the pointer eases a depth-scaled
-        few-pixel offset per mote (one passive listener storing two numbers;
-        the ease happens inside the existing frame — nothing extra runs).
-     2. THE SWEEP — one horizontal luminance band (a prebuilt gradient
-        sprite plus a 1px center hairline) traversing top -> bottom every
-        ~10.5s (3.2s pass) — and since V2-1, joined mid-cycle by one quiet
-        ECHO pass, the heartbeat that keeps the steady state alive: the
-        cycle is 3.2s pass, 1.8s dark, a 3.4s echo over the same path, 2.1s
-        dark — darkest gap ~2.1s, so a lingering visitor never watches
-        still ground. V3-B (bolder) raised the echo 0.42x -> 0.60x gain
-        and brightened the pass's trail stops (see the constants block)
-        — the scanner reads at a glance now, not on close inspection.
-        The echo repeats the SAME scanner weaker and lazier (never a
-        second scanner, never a bounce: the machine's rhythm stays one
-        voice), inherits the counter-band restraint, and never carries
-        the power-on boost. RESTRAINT: one
-        orchestrated power-on — js/motion.js calls
-        window.ULTRON_FIELD.ignite() when the count-up fires, restarting
-        the sweep from the top at 1.45x gain so scan and counters ignite
-        as ONE moment; after that the field only breathes (pass + echo).
-        Without the call (motion module absent) the sweep runs on its
-        natural timer, 1.6s after boot.
+        faint chrome motes. Palette discipline holds: every color is an
+        rgba alpha of the pinned crimson (229,56,59) or chrome
+        (201,211,221) — no off-world hue. Slight parallax: the pointer
+        eases a depth-scaled few-pixel offset per mote.
+     2. THE SWEEP — one horizontal luminance band traversing the viewport
+        every ~10.5s heartbeat cycle (pass, dark, quieter echo pass,
+        dark), as before. Since the canvas sits BEHIND all stage content,
+        the sweep reads only in the open ground between/around stages'
+        opaque plates — it can never tint a letterform now; the zone
+        multipliers below stay as authored restraint for the hero.
 
-   NEVER OBSCURES THE WORDMARK — enforced, not hoped:
-   - The wordmark and category line paint ABOVE the canvas (css/styles.css
-     section 11: .hero-wordmark/.hero-category z-index 3 over the canvas's
-     2), so no particle and no sweep ever tints those letterforms; the field
-     is visible in the open ground between and around them.
-   - The counter band's clip-path chamfer makes it one atomic stacking unit
-     BELOW the canvas, so the sweep is allowed to cross it visibly — the
-     band's own numerals sit under the wash for those ~0.9s. Density zoning
-     holds the line: full-width y-bands measured at resize carry per-zone
-     alpha/size multipliers (wordmark/category band 0.4 / 0.7 — even the
-     ground beside the letters stays quiet; counter-band region 0.6 / 0.85
-     for dim motes and 0.35 for the bright anchors) and the sweep's gain
-     over the band is 0.7 of its ground gain. Worst
-     instantaneous case (the power-on wash at full gain under a numeral)
-     still measures ~7.5:1 against the 10.43:1 chrome/plate baseline —
-     recomputed from rendered canvas pixels in the V3 harness; the floors
-     hold with margin. The field is background texture, never content.
+   RESTRAINT IS STAGE-AWARE (V4 W1, pluggable): a zone RESOLVER maps the
+   ACTIVE stage (js/stages.js tracking, event "ultron:stagechange") to the
+   canvas's density zones. The default: while HERO is the active stage the
+   measured wordmark/category/band y-bands carry their V3 alpha/size
+   multipliers exactly; on every other stage the field stands CALM — a
+   global low-density multiplier (dimmer, slightly smaller motes) so the
+   content stages keep the ground breathing without competing. W2's
+   choreography can replace the map via window.ULTRON_FIELD.
+   setZoneResolver(fn) without touching this module's loop.
 
-   PERFORMANCE (Thor's budget — measured in the V3 harness, numbers logged):
-   - ONE rAF loop, delta-time based, clamped at 50ms so a background tab
-     cannot teleport the field.
-   - ZERO per-frame allocations: a fixed 170-slot object pool, prebuilt
-     sprites (ember glow, chrome mote, sweep gradient), number-only math in
-     the frame — verified by flat JS heap across a 10s run.
-     The loop STOPS: document.hidden (visibilitychange) and hero scrolled
-     out of view (IntersectionObserver on the canvas) each cancel it;
-     either condition ending restarts it.
-   - devicePixelRatio capped at 2; canvas sized to the hero region ONLY.
-   - Adaptive density (V3-B, louder): 1 mote per 2800 css px^2, clamped
-     to 64-170 (170 at 1440-wide desktop, 64 at phone widths); ~18% of
-     embers are bright slow anchors among dim motes (the visibility
-     spread). Frame cost re-measured with the deeper pool: still
-     sub-millisecond (numbers in the production log).
+   PERFORMANCE (Thor's budget): ONE delta-timed rAF loop (clamped at
+   50ms), ZERO per-frame allocations (fixed 170-slot pool, prebuilt
+   sprites), DPR capped at 2. PAUSE RULES (V4 W1): the loop stops on
+   document.hidden — and no longer on "hero scrolled out of view",
+   because the canvas never scrolls anywhere now; it is always on screen,
+   so visibility is the only stop.
 
-   REDUCED MOTION — NO rAF LOOP AT ALL (documented choice: painted still,
-   not the CSS-gradient fallback): the module paints ONE static frame —
-   motes at their initial positions, mid-twinkle, no sweep, no parallax —
-   and never requests an animation frame; the hero looks complete and
-   identical in kind without motion. A live preference switch repaints the
-   still (or starts the loop, if the preference lifts).
+   REDUCED MOTION — NO rAF LOOP AT ALL: the module paints ONE static
+   frame — full viewport since V4 — motes at their initial positions,
+   mid-twinkle, no sweep, no parallax, and never requests an animation
+   frame. A live preference switch repaints the still (or starts the
+   loop, if the preference lifts).
 
    PROGRESSIVE ENHANCEMENT: the canvas is declared in markup and NEVER
-   initializes without JS — an empty canvas renders nothing, so no-JS keeps
-   the static hero (the noscript notice already carries the messaging).
-   Log note: canvas exists in the DOM but stays inert when scripting is
-   off (choice: markup declaration keeps sizing/CRS auditable in css
-   section 11; an inert canvas is transparent).
+   initializes without JS — an empty canvas renders nothing, so no-JS
+   keeps the static page (the noscript notice carries the messaging).
 
-   LOADING: index.html loads this file (defer) AFTER js/motion.js. The
-   count-up's IntersectionObserver can only fire after every DOMContentLoaded
-   listener has run, so window.ULTRON_FIELD exists before motion.js can call
-   ignite(); the call is existence-guarded anyway.
+   LOADING: index.html loads this file (defer) AFTER js/stages.js, whose
+   DOMContentLoaded boot runs BEFORE this module's — so the active stage
+   is already tracked when the first measure() reads the zone resolver.
+   js/motion.js's count-up still calls window.ULTRON_FIELD.ignite() for
+   the one orchestrated power-on sweep (guarded, order-independent).
    ========================================================================== */
 
 (function () {
@@ -149,14 +114,25 @@
   var ZONE_BAND_SIZE = 0.85;
   var ZONE_PAD = 10;              /* px grown around measured text zones    */
   var BRIGHT_SHARE = 0.18;        /* embers that are the visible anchors    */
+  /* V4 W1 — the calm register for non-hero stages: the field keeps
+     breathing behind the content stages, dimmer and slightly smaller —
+     continuity without competition. W2's choreography owns any richer
+     per-stage map (setZoneResolver below). */
+  var CALM_ALPHA = 0.55;
+  var CALM_SIZE = 0.9;
 
   /* --- State ---------------------------------------------------------------- */
   var cssW = 0, cssH = 0, dpr = 1;
   var wmTop = -1, wmBot = -1, catTop = -1, catBot = -1, bandTop = -1;
+  var calmAlpha = 1, calmSize = 1;
   var count = 0;
-  var raf = 0, last = 0, inView = true;
+  var raf = 0, last = 0;
   var sweepEpoch = -1, powered = false;
   var ptrX = 0, ptrY = 0, ptrTX = 0, ptrTY = 0; /* eased / target, -1..1 */
+  /* Pluggable zone source (V4 W1): maps the active stage element to the
+     canvas's density zones. Default below; replaceable via
+     window.ULTRON_FIELD.setZoneResolver — the frame loop never changes. */
+  var zoneResolver = defaultZoneResolver;
 
   /* --- Sprites (built once; the frame only issues drawImage calls) --------- */
 
@@ -260,48 +236,75 @@
     for (var i = 0; i < count; i++) reset(pool[i], true);
   }
 
-  /* --- Geometry (measured at resize; full-width y-bands only) --------------- */
+  /* --- Geometry (measured at resize / stage change) -------------------------- */
 
-  function docTop(node) {
-    return node.getBoundingClientRect().top + (window.scrollY || 0);
+  /* The default zone map (V4 W1's "simplest correct" source, pluggable):
+     HERO active -> the measured wordmark/category/band y-bands carry the
+     authored V3 restraint; any other stage (or an unknown tracker) -> the
+     calm register, one global multiplier. Coordinates are VIEWPORT-relative
+     because the canvas is fixed — no scroll offsets anywhere. */
+  function defaultZoneResolver(active) {
+    if (active && active.id !== "hero") {
+      return { calm: true };
+    }
+    return {
+      wm: rectOf(document.querySelector(".hero-wordmark")),
+      cat: rectOf(document.querySelector(".hero-category")),
+      band: rectOf(document.querySelector(".stats-band") || document.getElementById("stats"))
+    };
   }
 
+  function rectOf(node) {
+    if (!node) return null;
+    var r = node.getBoundingClientRect();
+    return { top: r.top, h: r.height };
+  }
+
+  function applyZones(z) {
+    wmTop = wmBot = catTop = catBot = bandTop = -1;
+    calmAlpha = 1;
+    calmSize = 1;
+    if (!z) return;
+    if (z.calm) {
+      calmAlpha = CALM_ALPHA;
+      calmSize = CALM_SIZE;
+      return;
+    }
+    if (z.wm) {
+      wmTop = Math.max(0, z.wm.top - ZONE_PAD);
+      wmBot = z.wm.top + z.wm.h + ZONE_PAD;
+    }
+    if (z.cat) {
+      catTop = Math.max(0, z.cat.top - ZONE_PAD);
+      catBot = z.cat.top + z.cat.h + ZONE_PAD;
+    }
+    if (z.band) {
+      bandTop = Math.max(0, z.band.top - ZONE_PAD);
+    }
+  }
+
+  function activeStageEl() {
+    if (window.ULTRON_STAGES && typeof window.ULTRON_STAGES.getActive === "function") {
+      return window.ULTRON_STAGES.getActive();
+    }
+    return null;
+  }
+
+  /* The canvas covers the viewport, permanently: sizing follows the window,
+    and the zones follow the ACTIVE stage (js/stages.js). */
   function measure() {
-    var heroRect = hero.getBoundingClientRect();
-    var heroTop = heroRect.top + (window.scrollY || 0);
-    var foot = docTop(stats) + stats.getBoundingClientRect().height;
-    var heroFoot = heroTop + heroRect.height;
-    if (foot < heroFoot) foot = heroFoot; /* degraded stats: stop at hero */
-
     var oldW = cssW, oldH = cssH;
-    cssW = Math.max(1, Math.round(heroRect.width));
-    cssH = Math.max(1, Math.round(foot - heroTop));
+    cssW = Math.max(1, Math.round(
+      window.innerWidth || document.documentElement.clientWidth || 0));
+    cssH = Math.max(1, Math.round(
+      window.innerHeight || document.documentElement.clientHeight || 0));
 
-    /* Inline height extends the canvas past #hero's own box, down to the
-       counter band's foot (CSS height:100% is the no-JS fallback). */
-    canvas.style.height = cssH + "px";
     dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); /* draw in css px everywhere */
 
-    /* Text zones (canvas-relative y-bands, grown by ZONE_PAD). */
-    var wm = document.querySelector(".hero-wordmark");
-    var cat = document.querySelector(".hero-category");
-    var band = document.querySelector(".stats-band") || stats;
-    function bandOf(node) {
-      if (!node) return null;
-      var r = node.getBoundingClientRect();
-      return { top: r.top + (window.scrollY || 0) - heroTop, h: r.height };
-    }
-    var z = bandOf(wm);
-    wmTop = z ? Math.max(0, z.top - ZONE_PAD) : -1;
-    wmBot = z ? z.top + z.h + ZONE_PAD : -1;
-    z = bandOf(cat);
-    catTop = z ? Math.max(0, z.top - ZONE_PAD) : -1;
-    catBot = z ? z.top + z.h + ZONE_PAD : -1;
-    z = bandOf(band);
-    bandTop = z ? Math.max(0, z.top - ZONE_PAD) : -1;
+    applyZones(zoneResolver(activeStageEl()));
 
     count = Math.round(cssW * cssH / AREA_PER_PARTICLE);
     if (count < MIN_PARTICLES) count = MIN_PARTICLES;
@@ -412,9 +415,9 @@
          the rest read alive; the modulation PEAK stays exactly 1.0, so
          per-mote peak brightness (and every contrast ceiling) is
          unchanged — only the dark phase of each breath deepened. */
-      var a = p.base * (0.64 + 0.36 * Math.sin(tSec * p.twF + p.twP)) * mult;
+      var a = p.base * (0.64 + 0.36 * Math.sin(tSec * p.twF + p.twP)) * mult * calmAlpha;
       if (a < 0.02) continue;
-      var s = p.r * smult;
+      var s = p.r * smult * calmSize;
       var dx = p.x + ptrX * p.depth * 9;
       var dy = p.y + ptrY * p.depth * 5;
       ctx.globalAlpha = a;
@@ -436,7 +439,9 @@
   }
 
   function start() {
-    if (prefersReducedMotion() || document.hidden || !inView) return;
+    /* V4 W1: no off-screen stop — the canvas is fixed and always on screen;
+       document.hidden is the only pause condition left (see wiring below). */
+    if (prefersReducedMotion() || document.hidden) return;
     if (raf === 0) {
       last = 0;
       raf = window.requestAnimationFrame(frame);
@@ -457,21 +462,13 @@
 
   /* --- Lifetime wiring --------------------------------------------------------- */
 
+  /* PAUSE RULES (V4 W1): tab-hidden stops the loop, returning restarts it.
+     The V3 hero-offscreen IntersectionObserver is GONE — the canvas is a
+     fixed full-viewport backdrop and never scrolls out of view. */
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) stop();
     else start();
   });
-
-  if ("IntersectionObserver" in window) {
-    var io = new IntersectionObserver(function (entries) {
-      inView = entries[entries.length - 1].isIntersecting;
-      if (inView) start();
-      else stop();
-    }, { rootMargin: "60px", threshold: 0 });
-    io.observe(canvas);
-  }
-  /* No IntersectionObserver (ancient engine): inView stays true — the hero
-     is the top of the page; the visibilitychange stop still applies. */
 
   function onPointer(e) {
     if (cssW < 1 || cssH < 1) return;
@@ -492,6 +489,19 @@
       measure();
       if (prefersReducedMotion()) renderStatic();
     }, 120);
+  });
+
+  /* V4 W1: the zone source follows the console — a stage change re-measures
+     (the active stage's text blocks moved), and a wall re-pagination
+     (render.js tier change) re-measures too. Cheap: a few rects, no
+     allocations, and under reduced motion the still is simply repainted. */
+  document.addEventListener("ultron:stagechange", function () {
+    measure();
+    if (prefersReducedMotion()) renderStatic();
+  });
+  document.addEventListener("ultron:wallpages", function () {
+    measure();
+    if (prefersReducedMotion()) renderStatic();
   });
 
   if (document.fonts && document.fonts.ready &&
@@ -536,8 +546,20 @@
     start();
   }
 
-  /* The ONE orchestration surface (see header; motion.js guards existence). */
-  window.ULTRON_FIELD = { ignite: ignite };
+  /* The orchestration surfaces (see header; motion.js guards existence).
+     setZoneResolver (V4 W1): the pluggable restraint map — fn(activeElement)
+     returns either { calm: true } or { wm, cat, band } rect specs
+     ({ top, h }, viewport coordinates). W2's choreography can install a
+     richer per-stage map without touching the loop. */
+  window.ULTRON_FIELD = {
+    ignite: ignite,
+    setZoneResolver: function (fn) {
+      if (typeof fn === "function") zoneResolver = fn;
+      else zoneResolver = defaultZoneResolver;
+      measure();
+      if (prefersReducedMotion()) renderStatic();
+    }
+  };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

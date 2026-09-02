@@ -27,6 +27,10 @@
       while a drain runs join its tail, so a slow scroll cascades row by
       row and a fast scroll plays the whole power-on at once. Each plate
       is unobserved the moment it fires: once each, ever.
+      V4 W1: the wall is PAGINATED into stage pages (one .wall-grid per
+      page); every grid is armed, and a tier-change re-pagination
+      (document event "ultron:wallpages" from render.js) re-arms the new
+      pages' plates — a rotated or resized console keeps its ignition.
 
    3. FRIEZE SWEEP (V4 enhancement of B5's node ignition). The lineage
       nodes still take .is-lit in lineage order at 60ms steps as they
@@ -64,6 +68,28 @@
    the page's opening reads as one continuous power-on: field sweep +
    counting numerals, then the first plates rising at the fold.
 
+   6. STAGE CHOREOGRAPHY (V4 W2 — THE DISAPPEAR/REAPPEAR ILLUSION). When
+      js/stages.js is present, the IO-driven scroll ignition of items 2-4
+      is REPLACED by stage-driven entry: every stage assembles when it
+      SETTLES as the active stage (its plates rising on the same 55ms
+      drain, its dedications at 70ms, its frieze nodes sweeping at 60ms —
+      the established ignite grammar, staggered only where a sequence
+      means something), and every other stage is held RECESSIVE (css
+      styles.css section 15: opacity/scale/blur on the stage's content —
+      transform/opacity/filter ONLY, never display/visibility, so
+      off-stage content never leaves the accessibility tree; the
+      persistent canvas field is structurally exempt and never
+      transitions). The release BEGINS on "ultron:stagedepart" (visible
+      while the old stage still fills the screen) and the assembly lands
+      on "ultron:stagesettle" — the same task that flips the spine tick,
+      so label and content share one beat. A contentLive flag keeps a
+      brief pull-away-and-return from re-striking a stage that never
+      left: it simply un-dims (the reappear without a flash). The wall
+      PAGER (phone tiers, js/render.js) re-uses the same grammar per
+      horizontal page via "ultron:wallpage". The wordmark glitch (item 5)
+      holds a suppression window across every swap — one moment at a
+      time, still hero-only.
+
    PROGRESSIVE ENHANCEMENT — hard rules:
    - NO content is hidden awaiting CSS by default. The pre-rise offsets
      live ONLY under two arming classes this module adds — .wall-armed
@@ -87,9 +113,13 @@
      infinite loops (the hero canvas's breathing field is the one
      exception, and it is V3's, not this file's).
 
-   LOADING: index.html loads this file (defer) AFTER js/render.js. Defer
-   preserves execution order, so the counters exist by the time this
-   module's DOMContentLoaded listener runs (same dispatch as the render).
+   LOADING: index.html loads this file (defer) AFTER js/render.js and
+   js/stages.js, BEFORE js/field.js. Defer preserves execution order, so
+   the counters and the wall pages exist and the console is already
+   tracking a stage by the time this module's init runs (and its
+   stage-choreography boot PULLS the active stage rather than waiting for
+   the event — see section 6 — so the boot is robust to either module
+   evaluating first).
    ========================================================================== */
 
 (function () {
@@ -217,18 +247,30 @@
     later(drainPlates, PLATE_STAGGER_MS);
   }
 
+  /* ARM the wall's pre-rise offsets — shared by the legacy IO path and the
+     W2 stage path. The class exists only to gate the offsets (css section
+     12), so re-arming a grid whose plates already rose is a no-op. V4 W2:
+     the phone pager's x-pages arm identically (each carries its plates). */
+  function armWallGrids() {
+    var grids = document.querySelectorAll(".wall-grid, .wall-pager-page");
+    for (var i = 0; i < grids.length; i++) grids[i].classList.add("wall-armed");
+  }
+
   function initWallIgnition() {
-    var grid = document.querySelector(".wall-grid");
-    if (!grid) return;
-    var plates = grid.querySelectorAll(".plate");
+    /* LEGACY path (js/stages.js absent): every page carries its own
+        .wall-grid; arm them all and let the IO own the ignition. */
+    var grids = document.querySelectorAll(".wall-grid");
+    if (grids.length === 0) return;
+    var plates = document.querySelectorAll(".wall-grid .plate");
     if (plates.length === 0) return;
 
     /* ARM — the only moment any content is offset. Applied HERE, in the
        same DOMContentLoaded task as the render and immediately before the
        observer exists, so a paint can never show risen-then-hidden plates
        (css section 12: the offsets live only under .wall-armed). */
-    grid.classList.add("wall-armed");
+    armWallGrids();
 
+    if (plateIO) plateIO.disconnect();
     plateIO = new IntersectionObserver(function (entries) {
       var batch = [];
       for (var i = 0; i < entries.length; i++) {
@@ -244,6 +286,45 @@
 
     for (var k = 0; k < plates.length; k++) plateIO.observe(plates[k]);
   }
+
+  /* V4 W1: render.js re-paginates the wall on a tier change (resize) and
+     announces it as "ultron:wallpages" — the new pages need their arming
+     (+, on the stage path, the stage classes a fresh section needs) re-bound.
+     The INITIAL dispatch fires from render's own DOMContentLoaded listener
+     BEFORE this module's init has chosen its path — motionBooted gates it
+     out (init arms everything itself, in the same dispatch, before paint).
+     Reduced motion never arms (and if the preference arrives later, the
+     live switch below settles everything). */
+  var motionBooted = false;
+  document.addEventListener("ultron:wallpages", function () {
+    if (!motionBooted) return;
+    if (prefersReducedMotion()) return;
+    if (!("IntersectionObserver" in window)) return;
+    if (stageChoreo) {
+      armWallGrids();
+      eachStage(function (stage) {
+        if (stage.classList.contains("stage-armed")) return;
+        stage.classList.add("stage-armed");
+        stage.classList.add("is-left");
+        contentLive[stage.id] = false;
+      });
+      /* The rebuilt wall DOM must re-assemble — and it must assemble even
+         when the console's own wallpages listener (which re-commits the
+         active stage and fires its settle) has ALREADY run: listener order
+         between the two modules is registration order, not guaranteed
+         against this one. PULL: strike the active wall stage now; the
+         settle path is idempotent behind the same contentLive flag. */
+      var id = window.ULTRON_STAGES && typeof window.ULTRON_STAGES.getActiveId === "function"
+        ? window.ULTRON_STAGES.getActiveId()
+        : null;
+      if (id && isWallStageId(id)) {
+        contentLive[id] = false;
+        onStageSettle({ detail: { id: id } });
+      }
+      return;
+    }
+    initWallIgnition();
+  });
 
   /* --- 3. FRIEZE SWEEP (B5 ignition, V4 pulse) ------------------------------ */
 
@@ -328,7 +409,14 @@
      different compositions every pulse), restart the CSS animation
      (class off, forced reflow, class on — one reflow per pulse is the
      whole cost), and self-clear so the base stamp's flare swaps back. */
+  /* V4 W2: a stage swap owns the beat — the burst waits the window out and
+     retries once the console is at rest (still hero-only by construction:
+     the wordmark is only on screen while HERO is the active stage). */
   function fireGlitch(wm) {
+    if (nowMs() < suppressGlitchUntil) {
+      later(function () { fireGlitch(wm); }, 1200);
+      return;
+    }
     wm.style.setProperty("--gd-a", (-Math.random() * 0.26).toFixed(3) + "s");
     wm.style.setProperty("--gd-b", (-Math.random() * 0.26).toFixed(3) + "s");
     wm.classList.remove("is-glitch");
@@ -364,7 +452,8 @@
   }
 
   /* Reduced-motion switch: strip both classes and kill the pending
-     clear (the CSS kill block renders the copies inert regardless). */
+     clear (the CSS kill block renders the copies inert regardless).
+     V4 W2: also clears a live burst when a stage swap takes the beat. */
   function disarmWordmarkGlitch() {
     var wm = document.querySelector(".hero-wordmark");
     if (wm) {
@@ -378,26 +467,277 @@
     glitchArmed = true; /* stays disarmed: once per load, no replay      */
   }
 
+  function clearGlitchBurst() {
+    var wm = document.querySelector(".hero-wordmark");
+    if (wm) wm.classList.remove("is-glitch");
+    if (glitchClearTimer) {
+      clearTimeout(glitchClearTimer);
+      glitchClearTimer = 0;
+    }
+  }
+
+  /* --- 6. STAGE CHOREOGRAPHY (V4 W2 — the disappear/reappear illusion) ------ */
+
+  var GLITCH_HOLD_MS = 900;   /* no wordmark burst inside a stage swap        */
+  var suppressGlitchUntil = 0;
+  var stageChoreo = false;    /* the stage-driven path is live                */
+  var contentLive = {};       /* stage id -> its content is risen right now   */
+
+  function nowMs() {
+    return (window.performance && performance.now) ? performance.now() : Date.now();
+  }
+
+  function eachStage(fn) {
+    var nodes = document.querySelectorAll(".stage");
+    for (var i = 0; i < nodes.length; i++) fn(nodes[i]);
+  }
+
+  function isWallStageId(id) {
+    return id === "wall" || /^wall-\d+$/.test(id);
+  }
+
+  /* The elements that RISE on entry, in strike order. Plates and frieze
+     nodes are excluded — they own their staggers below. */
+  function stageEnterables(stage) {
+    var list = [];
+    function push(node) { if (node) list.push(node); }
+    if (stage.id === "hero") {
+      push(stage.querySelector(".hero-lintel"));
+      push(stage.querySelector("#stats"));
+    } else if (isWallStageId(stage.id)) {
+      push(stage.querySelector(".wall-readout"));
+      push(stage.querySelector(".wall-pager-head"));
+    } else if (stage.id === "roster") {
+      var items = stage.querySelectorAll(".dedication");
+      for (var i = 0; i < items.length; i++) push(items[i]);
+    } else if (stage.id === "frieze") {
+      push(stage.querySelector(".frieze-line"));
+    } else if (stage.id === "footer") {
+      push(stage.querySelector(".footer-plate"));
+      push(stage.querySelector(".archive-anchor"));
+    }
+    return list;
+  }
+
+  function addRisen(node) { node.classList.add("is-risen"); }
+
+  /* Re-strike a rise: strip the entered class, ONE forced reflow so the
+     pre-entry offsets exist before the rise starts (never a flash of the
+     end state), then land the class in staggered steps. */
+  function strikeRise(nodes, stepMs) {
+    var live = [];
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].classList.remove("is-risen");
+      live.push(nodes[i]);
+    }
+    if (live.length === 0) return;
+    void live[0].offsetHeight;
+    for (var j = 0; j < live.length; j++) {
+      later(addRisen.bind(null, live[j]), stepMs * j);
+    }
+  }
+
+  /* The plates' entrance rides the SAME continuous 55ms drain queue the
+     legacy path uses — one wave per entering scope, DOM order. */
+  function ignitePlates(scope) {
+    if (!scope) return;
+    var plates = scope.querySelectorAll(".plate");
+    if (plates.length === 0) return;
+    for (var i = 0; i < plates.length; i++) plates[i].classList.remove("is-risen");
+    void plates[0].offsetHeight;
+    for (var j = 0; j < plates.length; j++) plateQueue.push(plates[j]);
+    if (!plateDraining) drainPlates();
+  }
+
+  /* The frieze sweep, re-fired per entry: nodes light in lineage order at
+     60ms steps, each flaring (.is-pulse) then settling — one crimson pulse
+     traveling the spine every time the frieze reappears. */
+  function sweepFrieze(stage) {
+    var milestones = stage.querySelectorAll(".milestone");
+    if (milestones.length === 0) return;
+    for (var i = 0; i < milestones.length; i++) {
+      milestones[i].classList.remove("is-lit");
+      milestones[i].classList.remove("is-pulse");
+    }
+    void milestones[0].offsetHeight;
+    for (var j = 0; j < milestones.length; j++) {
+      later(igniteMilestone.bind(null, milestones[j]), j * STAGGER_MS);
+    }
+  }
+
+  /* Release an off-screen stage's content back to the pre-entry state
+     (no reflow — it is never visible when this runs). */
+  function stripStage(stage) {
+    var risen = stage.querySelectorAll(".is-risen");
+    for (var i = 0; i < risen.length; i++) risen[i].classList.remove("is-risen");
+    var band = stage.querySelector(".roster-band.is-ignited");
+    if (band) band.classList.remove("is-ignited");
+    var lit = stage.querySelectorAll(".milestone.is-lit");
+    for (var j = 0; j < lit.length; j++) {
+      lit[j].classList.remove("is-lit");
+      lit[j].classList.remove("is-pulse");
+    }
+  }
+
+  /* Reduced motion: the entering stage's FINAL state, synchronously. */
+  function forceFinalStage(stage) {
+    var enterables = stageEnterables(stage);
+    for (var e = 0; e < enterables.length; e++) enterables[e].classList.add("is-risen");
+    var plates = stage.querySelectorAll(".plate");
+    for (var p = 0; p < plates.length; p++) plates[p].classList.add("is-risen");
+    var band = stage.querySelector(".roster-band");
+    if (band) band.classList.add("is-ignited");
+    var milestones = stage.querySelectorAll(".milestone");
+    for (var m = 0; m < milestones.length; m++) milestones[m].classList.add("is-lit");
+    contentLive[stage.id] = true;
+  }
+
+  function assembleStage(stage) {
+    if (stage.id === "hero") {
+      strikeRise(stageEnterables(stage), 90); /* lintel, then the counters */
+    } else if (isWallStageId(stage.id)) {
+      strikeRise(stageEnterables(stage), 0);  /* the readout band            */
+      if (window.ULTRON_WALL && typeof window.ULTRON_WALL.current === "function") {
+        /* Phone pager: only the screen the visitor is ON ignites. */
+        var pages = stage.querySelectorAll(".wall-pager-page");
+        var idx = window.ULTRON_WALL.current();
+        if (pages.length) {
+          ignitePlates(pages[Math.max(0, Math.min(idx, pages.length - 1))]);
+        }
+      } else {
+        ignitePlates(stage);
+      }
+    } else if (stage.id === "roster") {
+      var band = stage.querySelector(".roster-band");
+      if (band) {
+        band.classList.remove("is-ignited");
+        void band.offsetHeight; /* the chip bloom re-strikes with the rise */
+        band.classList.add("is-ignited");
+      }
+      strikeRise(stageEnterables(stage), 70); /* six dedications            */
+    } else if (stage.id === "frieze") {
+      strikeRise(stageEnterables(stage), 0);  /* the whole line, quietly    */
+      sweepFrieze(stage);                     /* then the sweep             */
+    } else if (stage.id === "footer") {
+      strikeRise(stageEnterables(stage), 90); /* plate, then the archive line */
+    }
+  }
+
+  function onStageDepart(evt) {
+    if (prefersReducedMotion()) return;
+    /* One moment at a time: a swap owns the beat — no wordmark burst. */
+    suppressGlitchUntil = nowMs() + GLITCH_HOLD_MS;
+    clearGlitchBurst();
+    var el = document.getElementById(evt && evt.detail ? evt.detail.id : "");
+    if (el && el.classList.contains("stage-armed")) {
+      el.classList.add("is-left");
+      /* W3: the RELEASE visuals (css section 15) ride this TRANSIENT class,
+         removed at the following settle — a resting off-stage stage holds
+         its pre-entry state (the axe-clean recessive rest), while the
+         departing stage dims .2/scale/blur exactly as W2 shipped, while
+         still visible. */
+      el.classList.add("is-departing");
+    }
+  }
+
+  function onStageSettle(evt) {
+    var el = document.getElementById(evt && evt.detail ? evt.detail.id : "");
+    if (!el || !el.classList.contains("stage-armed")) return;
+    if (prefersReducedMotion()) {
+      el.classList.remove("is-left");
+      el.classList.remove("is-departing");
+      el.classList.add("is-active");
+      forceFinalStage(el);
+      return;
+    }
+    suppressGlitchUntil = nowMs() + GLITCH_HOLD_MS;
+    /* Every other stage recedes (and, if its content is still risen, is
+       stripped — never visible: it is off-screen by now). */
+    eachStage(function (other) {
+      if (other === el || !other.classList.contains("stage-armed")) return;
+      other.classList.add("is-left");
+      other.classList.remove("is-active");
+      other.classList.remove("is-departing");
+      if (contentLive[other.id]) {
+        stripStage(other);
+        contentLive[other.id] = false;
+      }
+    });
+    el.classList.remove("is-left");
+    el.classList.remove("is-departing");
+    el.classList.add("is-active");
+    /* A brief pull-away that snapped home needs no re-assembly — the un-dim
+       IS the reappear; a struck content set assembles in full grammar. */
+    if (contentLive[el.id]) return;
+    contentLive[el.id] = true;
+    assembleStage(el);
+  }
+
+  /* The phone pager's inner page change: the same ignition grammar, scoped
+     to the x-page that settled. */
+  document.addEventListener("ultron:wallpage", function (evt) {
+    if (!stageChoreo || prefersReducedMotion()) return;
+    var idx = evt && evt.detail ? evt.detail.index : -1;
+    var pages = document.querySelectorAll(".wall-pager-page");
+    if (idx >= 0 && idx < pages.length) ignitePlates(pages[idx]);
+  });
+
+  function initStageChoreography() {
+    stageChoreo = true;
+    armWallGrids();
+    eachStage(function (stage) {
+      stage.classList.add("stage-armed");
+      contentLive[stage.id] = false;
+    });
+    document.addEventListener("ultron:stagedepart", onStageDepart);
+    document.addEventListener("ultron:stagesettle", onStageSettle);
+    /* ORDER-ROBUST BOOT: with defer every module boots at its own
+       evaluation, and stages.js may already have committed the boot stage
+       (its initial settle fired before these listeners existed). PULL the
+       tracked active stage instead of waiting to be told — whichever
+       module evaluated first, the boot stage assembles exactly once. */
+    var active = window.ULTRON_STAGES && typeof window.ULTRON_STAGES.getActiveId === "function"
+      ? window.ULTRON_STAGES.getActiveId()
+      : null;
+    if (active) onStageSettle({ detail: { id: active } });
+  }
+
   /* --- REDUCED MOTION / ANCIENT ENGINES --------------------------------------- */
 
   /* Remove the arming classes so every pre-rise offset vanishes (the
-     reduced-motion media query has already killed the transitions). */
+     reduced-motion media query has already killed the transitions).
+     V4 W1: every wall PAGE grid, not one. V4 W2: the stage classes go too —
+     under reduced motion nothing is ever dimmed, every stage is final, and
+     the console swaps by instant snap alone. */
   function disarmIgnition() {
     document.body.classList.remove("motion-armed");
-    var grid = document.querySelector(".wall-grid");
-    if (grid) grid.classList.remove("wall-armed");
+    var grids = document.querySelectorAll(".wall-grid, .wall-pager-page");
+    for (var i = 0; i < grids.length; i++) grids[i].classList.remove("wall-armed");
     plateQueue.length = 0;
     plateDraining = false;
+    eachStage(function (stage) {
+      stage.classList.remove("stage-armed");
+      stage.classList.remove("is-left");
+      stage.classList.remove("is-departing");
+      stage.classList.remove("is-active");
+      contentLive[stage.id] = true;
+    });
   }
 
   function igniteAllInstantly() {
     /* Final static state, no timers, no observers, no offsets. */
     clearPending();
     disarmIgnition();
-    var plates = document.querySelectorAll("#wall .plate");
+    var plates = document.querySelectorAll(".wall-grid .plate, .wall-pager-page .plate");
     for (var p = 0; p < plates.length; p++) {
       plates[p].classList.add("is-risen");
     }
+    var enterables = [];
+    eachStage(function (stage) {
+      var stageEnter = stageEnterables(stage);
+      for (var e = 0; e < stageEnter.length; e++) enterables.push(stageEnter[e]);
+    });
+    for (var n = 0; n < enterables.length; n++) enterables[n].classList.add("is-risen");
     var band = document.querySelector(".roster-band");
     if (band) {
       band.classList.add("is-ignited");
@@ -434,6 +774,7 @@
   /* --- BOOT ------------------------------------------------------------------ */
 
   function init() {
+    motionBooted = true;
     collectCounters();
     /* Reduced motion / no IO: touch nothing that hides — A3's final values
        already stand, the static glow states are the end state, no arming
@@ -442,10 +783,20 @@
       igniteAllInstantly();
       return;
     }
+    /* The count-up keeps its FIRST-VIEW contract under every path: it is
+       the hero's power-on, once per load, IO-driven (a #frieze deep link
+       still counts when the visitor scrolls home). */
     watchCounterBand();
-    initFriezeSweep();
-    initWallIgnition();
-    initSectionReveals();
+    if (window.ULTRON_STAGES && typeof window.ULTRON_STAGES.list === "function") {
+      /* V4 W2: the console owns the ignition — stages assemble on settle,
+         recede on depart (section 6). The legacy IO systems below stay
+         for the no-console fallback (stages.js missing: the stacked page). */
+      initStageChoreography();
+    } else {
+      initFriezeSweep();
+      initWallIgnition();
+      initSectionReveals();
+    }
     /* V3-B fallback arm: if the counter band never counts (degraded
        stats), the wordmark still learns to glitch — the power-on that
        gates it is the field's natural first pass (~1.6s + 3.2s), so

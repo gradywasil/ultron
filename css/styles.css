@@ -226,10 +226,15 @@ html {
    shimmer is decorative; the resting crimson rule carries the energy
    and is itself decorative framing (the logged B4/B2 rule-class
    precedent: rules are framing, not state).
+   V4 W1: the rules moved from #hero to the .hero-lintel wrapper (the hero
+   stage now also carries the counter band below the lintel — the rules
+   stay the WORDMARK's furniture, so the stamp keeps its bracket). Same
+   geometry, same margins; the fold math in the V2-2/V2R3 logs still
+   describes the same stack.
    prefers-reduced-motion: the shimmer stops (the rule stays energized —
    static, still loud). */
-#hero::before,
-#hero::after {
+.hero-lintel::before,
+.hero-lintel::after {
   content: "";
   display: block;
   height: 7px; /* 1px rule + 5px gap + 1px rule — B2's exact stack      */
@@ -254,10 +259,10 @@ html {
   box-shadow: 0 0 9px 1px rgba(229, 56, 59, 0.16); /* faint emission    */
   animation: lintel-shimmer 5.6s linear infinite;
 }
-#hero::before {
+.hero-lintel::before {
   margin-bottom: var(--space-sm);
 }
-#hero::after {
+.hero-lintel::after {
   margin-top: var(--space-sm);
 }
 
@@ -1072,10 +1077,10 @@ html {
   #hero {
     padding: var(--space-md) var(--gutter) var(--space-sm);
   }
-  #hero::before {
+  .hero-lintel::before {
     margin-bottom: var(--space-xs);
   }
-  #hero::after {
+  .hero-lintel::after {
     margin-top: var(--space-xs);
   }
   .hero-wordmark {
@@ -1114,10 +1119,10 @@ html {
     padding-top: var(--space-sm);
     padding-bottom: var(--space-xs);
   }
-  #hero::before {
+  .hero-lintel::before {
     margin-bottom: var(--space-2xs);
   }
-  #hero::after {
+  .hero-lintel::after {
     margin-top: var(--space-2xs);
   }
   .hero-wordmark {
@@ -1941,8 +1946,8 @@ body.motion-armed .footer-plate {
    the crimson wash, the energized rules, the tinted band, the numeral
    cores, the 3-column wall, the 0.28 scanlines — all static color. */
 @media (prefers-reduced-motion: reduce) {
-  #hero::before,
-  #hero::after {
+  .hero-lintel::before,
+  .hero-lintel::after {
     animation: none; /* the shimmer rests; the crimson rule stays       */
   }
   .hero-wordmark.is-glitch::before,
@@ -1967,3 +1972,996 @@ body.motion-armed .footer-plate {
   }
 }
 
+
+/* ==========================================================================
+   14. V4 — THE ONE INTERFACE: the staged console (task W1, IRON MAN)
+   --------------------------------------------------------------------------
+   The owner's ask: "the illusion that there is no scrolling" — content that
+   swaps, not scrolls. DELIVERY (town-hall V4 Amendment): real scrolling stays
+   the INPUT (native gestures, keyboard, find-in-page, screen readers, deep
+   links all keep working), but the root scroller becomes a mandatory SNAP
+   console and every section is exactly one stage:
+
+     HERO (#hero — wordmark lintel + category + the counter band, the
+           power-on stage) -> WALL PAGES (#wall, #wall-2, ... — js/render.js
+           chunks the validated builds per viewport tier: >=1280px 3-col x
+           2-row pages of six, 13 screens -> 6/6/1 with the 13th a full-stage
+           FEATURED FINALE) -> ROSTER -> FRIEZE -> FOOTER.
+
+   THE PERSISTENT FIELD: #hero-field becomes position:fixed, full viewport,
+   z-index 1 — under every stage's content, over the ground. The machine
+   stays on while stages swap; that continuity is the illusion. Because
+   #hero carries position+z-index (the .stage rule below), it is a stacking
+   context and the canvas LIVES inside it: within the hero stage the canvas
+   still paints above the counter band's clipped plate (the V3 stacking
+   contract — the sweep may cross the numerals), while the wordmark and
+   category keep z-index 3 above it; later stages (also z-index 2, later in
+   tree order) paint above the canvas everywhere, so their text can never
+   be tinted by the field, and their open ground lets the embers through.
+
+   GATING — the whole section hangs on html.staged, added by the one inline
+   <head> script BEFORE first paint (index.html). No JS -> no class -> the
+   page is the same stacked document as before (the no-JS contract; see the
+   noscript note). Snap never traps anything: with the class present every
+   stage is exactly one viewport (100svh; a vh line first for pre-svh
+   engines), scroll-snap-stop: always makes one gesture one stage, and
+   every stage's content is kept inside its viewport (the condensed wall
+   anatomy below; measured in the W1 harness at 1440x900 / 1280x800 /
+   1440x700 / 390x844 / 320x568).
+
+   NEW text pairs introduced by W1: the spine's label (chrome on a
+   near-opaque ground chip, ~12.5:1) and ticks (aria-labeled buttons), the
+   wall readouts (chrome-dim on ground 6.55:1 — the logged B1 pair), and
+   the spine's active bar (crimson on ground 4.60:1, non-text — the logged
+   accent pair). No existing pair changes: every stage keeps the fields it
+   had; the canvas still never sets text.
+
+   MOTION: W1 adds NO transitions or animations (structure only — W2 owns
+   the choreography). Snapping is positional, not animated, and nothing
+   here needs a reduced-motion kill; the field's reduced-motion still is
+   js/field.js' (one painted frame, full viewport now).
+   ========================================================================== */
+
+/* --- The console: root-scroller snap + the stage primitive ---------------- */
+
+html.staged {
+  scroll-snap-type: y mandatory; /* the root scroller IS the console        */
+}
+
+html.staged .stage {
+  box-sizing: border-box;   /* 100svh includes the stage's own padding     */
+  min-height: 100vh;        /* pre-svh engines                             */
+  min-height: 100svh;       /* stable small viewport: URL-bar-safe          */
+  scroll-snap-align: start;
+  scroll-snap-stop: always; /* one gesture = one stage                     */
+  position: relative;
+  z-index: 2;               /* above the fixed field (z 1), below scanlines */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  /* monumental: each stage's course centers     */
+  padding: var(--stage-pad) var(--gutter);
+}
+
+/* --- The persistent field (supersedes section 11's hero-region canvas) ---- */
+
+#hero-field {
+  position: fixed;   /* spans the viewport for the whole document now      */
+  top: 0;
+  left: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;      /* js/field.js sizes the backing store to the viewport */
+  display: block;
+  z-index: 1;        /* under every stage's content, above the ground      */
+  pointer-events: none;
+}
+
+/* --- Stage-specific framing ------------------------------------------------
+   The old section rules carry ID specificity (#roster's frame padding, the
+   gutters, the phone-fold hero tiers); these ID+class resets only cancel the
+   stacked-document MARGINS so stages stack flush at exactly one viewport
+   each. #roster keeps its 1px chamfer-frame padding and takes its gutter as
+   margin (the frame technique needs the padding); #frieze and #wall keep the
+   class stage padding; #footer stays the full-bleed bookend it was. */
+
+#hero.stage,
+#roster.stage,
+#frieze.stage,
+#footer.stage,
+#wall.stage {
+  margin: 0;
+}
+
+#roster.stage {
+  margin: 0 var(--gutter); /* gutter as margin: the 1px frame keeps padding */
+}
+
+#hero.stage #stats {
+  width: 100%;
+}
+
+/* ==========================================================================
+   14a. THE WALL PAGES — pagination inside stage frames
+   --------------------------------------------------------------------------
+   Each wall page stage = one mono readout band + one grid of plates filling
+   the rest of the viewport. js/render.js sets each grid's column/row count
+   inline from the live tier (>=1280: 3x2, 640-1279: 2x2, phone: 1x2 or 1x1);
+   this section makes the plates FIT whatever track they land in:
+
+     - tracks are minmax(0, 1fr): the grid fills the stage's remaining height;
+     - a plate never STRETCHES (height auto, max-height 100%, centered): when
+       the viewport is generous the plate stands at its natural height (screen
+       at the shot's own 1312:820 grammar) with open ground around it; when
+       the viewport is tight the plate caps at the track and only the SCREEN
+       gives way (flex: 1 1 auto + min-height 0) — the anatomy (title, one-
+       liner, tags, 44px links) is never clipped, never overflows. The screen
+       carries the crop (object-fit: cover — the guard V2 already shipped for
+       off-ratio entries); theLit-Screen rule holds: the frame carries the
+       light, the bytes stay as shot.
+   ========================================================================== */
+
+.stage-wall {
+  --wall-max: none; /* short-viewport cap set in the height media query    */
+}
+
+/* A wall page is EXACTLY one viewport tall (not min-height): the definite
+   height is what lets the flex chain give way — minmax(0,1fr) rows over a
+   definite grid height, plate max-height against a definite track — so the
+   pages' content is always carried inside the stage instead of growing it.
+   (Measured without this: the pages stood 1001–1056px on a 900px viewport.) */
+html.staged .stage-wall {
+  height: 100vh;  /* pre-svh engines                                      */
+  height: 100svh; /* the stable one-viewport wall page                     */
+}
+
+/* The page readout: "SCREENS 01–06 / 13" left, "PAGE 01 / 03" right — the
+   machine's own orientation line, in the readout voice, real text (not
+   aria-hidden): it carries information for everyone. */
+.wall-readout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-md);
+  margin: 0 0 var(--space-2xs);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-micro);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 6.55:1 on ground — logged B1 pair           */
+}
+
+.stage-wall .wall-page {
+  flex: 1 1 auto;
+  min-height: 0;    /* the grid may shrink inside the stage                */
+  width: 100%;
+  max-width: var(--wall-max);
+  margin-inline: auto;
+}
+
+/* The staged plate: compact anatomy (the stacked wall had a whole document
+   to breathe in; a stage has one viewport), same engraved language. The
+   plate STRETCHES to its track (fr rows resolve reliably for stretch, and
+   the row keeps its shared datum line); inside it the screen holds its
+   natural data ratio (flex: 0 1 auto — grow never, shrink when the track
+   is tight) and .plate-links' margin-top: auto pins the links to the foot
+   exactly as the stacked wall did. */
+.stage-wall .plate {
+  min-width: 0;
+  gap: var(--space-2xs);
+  padding: 0 var(--space-xs) var(--space-xs); /* screen owns the top edge  */
+}
+
+/* The screen: the plate's giving element. Its box ratio comes from the
+   data (inline aspect-ratio — 1312/820 today, per-entry if that ever
+   changes), so an ample track keeps the shot's own grammar while a tight
+   track lets the screen shrink (never the anatomy). */
+.stage-wall .plate-screen {
+  position: relative;
+  flex: 0 1 auto;
+  min-height: 0;
+  margin: 0 calc(-1 * var(--space-xs)) var(--space-2xs); /* full-bleed top */
+  overflow: hidden;
+}
+.stage-wall .plate-shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* the crop channel — see the section header          */
+}
+
+/* The image-less fallback emblem flexes by the same law (its aspect-ratio
+   is section 10's 1312/820). */
+.stage-wall .plate:not(:has(> .plate-screen))::before {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+/* Compact staged type — the pairs are unchanged, only the sizes step down
+   to fit one viewport (floors held: Garamond stays 500+, Cinzel 700). */
+.stage-wall .plate-title {
+  font-size: clamp(1rem, 5.4cqi + 0.2rem, 1.375rem);
+  line-height: 1.25;
+}
+.stage-wall .plate-description {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+.stage-wall .plate-tag {
+  font-size: var(--size-micro);
+}
+
+/* --- The featured finale (the 13th screen) ----------------------------------
+   One plate, one stage: the same anatomy at monument scale, the screen at
+   (nearly) its full natural ratio — a single plate almost never caps. The
+   page's width cap is HEIGHT-aware (the screen grammar is 1312:820, so a
+   plate of width W needs W/1.6 of stage height plus its anatomy ~15rem):
+   tall viewports get the full 64rem monument, short laptops get a narrower
+   plate that still shows the shot un-cropped instead of a wide ribbon. */
+.stage-wall-featured .wall-page {
+  max-width: min(64rem, calc((100svh - 15rem) * 1.6));
+}
+.stage-wall-featured .plate-title {
+  font-size: clamp(1.375rem, 7cqi, 2.25rem);
+}
+.stage-wall-featured .plate-description {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+.stage-wall-featured .plate-tag {
+  font-size: var(--size-tag);
+}
+
+/* --- Short viewports (<= 780px tall): the wall narrows, the stages tighten --
+   Two rows of three monuments cannot stand at full width on a 700px-tall
+   laptop; rather than cropping the screens to ribbons, the page's grid
+   narrows (--wall-max) so the plates keep honest proportions, centered on
+   the persistent field — the console reads as a lit panel in open ground. */
+@media (max-height: 780px) {
+  html.staged .stage {
+    --stage-pad: 0.625rem;
+  }
+  .stage-wall {
+    --wall-max: 62rem;
+  }
+  .stage-wall .plate {
+    gap: var(--space-3xs);
+    padding: 0 var(--space-2xs) var(--space-2xs);
+  }
+  .stage-wall .plate-screen {
+    margin: 0 calc(-1 * var(--space-2xs)) var(--space-3xs);
+  }
+  #roster.stage .dedication {
+    padding: var(--space-xs) var(--space-md) var(--space-sm);
+  }
+  #roster.stage .dedication-role {
+    line-height: 1.4;
+  }
+  #frieze.stage .milestone-line {
+    line-height: 1.45;
+  }
+}
+
+/* --- Phone wall pages (single column, two plates) ----------------------------- */
+@media (max-width: 639px) {
+  .stage-wall .plate {
+    gap: var(--space-3xs);
+    padding: 0 var(--space-2xs) var(--space-2xs);
+  }
+  .stage-wall .plate-screen {
+    margin: 0 calc(-1 * var(--space-2xs)) var(--space-3xs);
+  }
+  .stage-wall .plate-title {
+    font-size: 1rem;
+  }
+  .stage-wall .plate-description {
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+  .stage-wall .plate-links {
+    gap: 0 var(--space-sm);
+  }
+  /* The stele frieze tightens so six courses stand inside one phone stage
+     (measured 619px at 320x568 before this block; ~520 after). The stele's
+     rail segments overshoot the tighter gaps by design — each node's ground
+     fill masks the rail behind it, so the lineage still reads continuous. */
+  #frieze.stage .frieze-line {
+    row-gap: var(--space-3xs);
+  }
+  #frieze.stage .milestone {
+    padding-left: var(--space-md);
+  }
+  #frieze.stage .milestone-title {
+    margin-top: var(--space-2xs);
+    font-size: 0.875rem;
+  }
+  #frieze.stage .milestone-line {
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
+}
+
+/* --- Phone roster (<= 639px): the band stands 2 x 3 -----------------------------
+   One column of six dedications cannot fit a phone stage (measured 891px on
+   a 390x664 viewport — the URL-bar svh reality); at phone widths the band
+   repacks to two columns with the <=900 seam grammar and the condensed
+   voice. Everything stays readable and present — nothing is cut. */
+@media (max-width: 639px) {
+  #roster.stage .roster-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #roster.stage .roster-band .dedication,
+  #roster.stage .roster-band .dedication:nth-child(even),
+  #roster.stage .roster-band .dedication:nth-child(3n + 2),
+  #roster.stage .roster-band .dedication:nth-child(3n + 3),
+  #roster.stage .roster-band .dedication:nth-child(n + 4) {
+    border-left: 0;
+    border-top: var(--hairline) solid var(--rule-soft);
+  }
+  #roster.stage .roster-band .dedication:first-child {
+    border-top: 0;
+  }
+  #roster.stage .roster-band .dedication:nth-child(even) {
+    border-left: var(--hairline) solid var(--rule-soft);
+  }
+  #roster.stage .roster-band .dedication:nth-child(n + 3) {
+    border-top: var(--hairline) solid var(--rule-soft);
+  }
+  #roster.stage .dedication {
+    padding: var(--space-xs) var(--space-2xs);
+  }
+  #roster.stage .dedication-name {
+    font-size: 0.875rem;
+  }
+  #roster.stage .dedication-role {
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
+  #roster.stage .dedication-mode {
+    font-size: 0.625rem;
+  }
+}
+
+/* --- SHORT VIEWPORTS (W3 fix of record): landscape phones + squat windows ---
+   The V4 floor says every stage is exactly one viewport — verified green at
+   the six standing widths, but a ROTATED phone (floor 8) lands in the mid
+   tier with a ~390px viewport height, where two stage anatomies cannot
+   stand: the roster's 2-column repack (<=900px wide) grows to 3 rows
+   (measured 466px on 844x390) and the frieze STELE (below 1180px wide) is
+   six stacked courses (measured 698px — it needs ~720 even condensed), so
+   those stages grew past 100svh and the console misaligned (scrollHeight
+   3659 vs 3120). Two height-keyed repacks close it — same anatomy, denser
+   packing, everything still readable and present:
+     - ROSTER stands 3 x 2 (the desktop course) in the condensed voice;
+     - FRIEZE cuts the stele into two columns x three courses (the
+       per-course rail segments end at their column's foot — the lineage
+       reads down each column; the nodes and ordinals still carry it).
+   The horizontal frieze (>= 1180px wide) is untouched — it never needed
+   more than ~180px of height. Sources AFTER the phone blocks above so the
+   same-specificity cascade resolves to these on the short intersection. */
+@media (max-height: 520px) and (min-width: 480px) {
+  #roster.stage .roster-band {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  #roster.stage .roster-band .dedication,
+  #roster.stage .roster-band .dedication:nth-child(even),
+  #roster.stage .roster-band .dedication:nth-child(n + 3) {
+    border-left: 0;
+    border-top: var(--hairline) solid var(--rule-soft);
+  }
+  #roster.stage .roster-band .dedication:nth-child(3n + 2),
+  #roster.stage .roster-band .dedication:nth-child(3n + 3) {
+    border-left: var(--hairline) solid var(--rule-soft);
+  }
+  #roster.stage .roster-band .dedication:first-child {
+    border-top: 0;
+  }
+  #roster.stage .dedication {
+    padding: var(--space-xs) var(--space-2xs) var(--space-sm);
+  }
+  #roster.stage .dedication-name {
+    font-size: 0.875rem;
+  }
+  #roster.stage .dedication-role {
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
+  #roster.stage .dedication-mode {
+    font-size: 0.625rem;
+  }
+}
+
+/* The frieze threshold is width-aware: the mid-width stele stands ~660-700px
+   tall, so below 700px of height it must cut to two columns; the phone-width
+   stele (already tightened by the block above) stands ~520px, so phones keep
+   their single-column lineage down to 540px of height — portrait phones
+   (568px+) never hit this, and the horizontal frieze (>= 1180px wide) never
+   needs more than ~180px of height. */
+@media (min-width: 640px) and (max-width: 1179.98px) and (max-height: 700px),
+       (max-width: 639.98px) and (max-height: 540px) {
+  #frieze.stage .frieze-line {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-lg);
+    row-gap: var(--space-md);
+  }
+  #frieze.stage .milestone::after {
+    content: none; /* the rail never crosses a column break */
+  }
+  #frieze.stage .milestone {
+    padding-left: var(--space-md);
+  }
+  #frieze.stage .milestone-title {
+    margin-top: var(--space-2xs);
+    font-size: 0.9375rem;
+  }
+  #frieze.stage .milestone-line {
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
+}
+
+/* --- The HERO on short viewports (W3): the power-on stage condenses -------
+   The counter band is the hero's mass (323px in its 2x2 repack — measured
+   844x390; the hero stood 546px on a 390px viewport). Under 560px of
+   height the band returns to its four-across course with compacted
+   numerals/padding and the lintel tightens one step — the power-on reads
+   in one glance at phone-landscape heights. Portrait phones (>= 560px
+   tall) never hit this block. */
+@media (max-height: 560px) and (min-width: 480px) {
+  #hero.stage {
+    padding-top: var(--space-sm);
+    padding-bottom: var(--space-2xs);
+  }
+  .hero-lintel::before {
+    margin-bottom: var(--space-2xs);
+  }
+  .hero-lintel::after {
+    margin-top: var(--space-2xs);
+  }
+  .hero-wordmark {
+    font-size: 2.5rem;
+  }
+  .hero-category {
+    margin-top: var(--space-2xs);
+    font-size: 0.8125rem;
+  }
+  #stats {
+    margin-top: var(--space-2xs);
+  }
+  .stats-band {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .stat {
+    padding: var(--space-2xs) var(--space-3xs) var(--space-xs);
+    border-left: var(--hairline) solid var(--rule-soft);
+  }
+  .stat:first-child {
+    border-left: 0;
+  }
+  .stat:nth-child(even),
+  .stat:nth-child(n + 3) {
+    border-left: var(--hairline) solid var(--rule-soft);
+  }
+  .stat:nth-child(n + 3) {
+    border-top: 0;
+  }
+  .stat-value {
+    font-size: 2.25rem;
+  }
+  .stat-label {
+    font-size: var(--size-micro);
+  }
+}
+
+/* --- Narrow AND short (W3): the harshest phone-landscape course -------------
+   Below 640px of width and 400px of height (568x320-class) the 3-column
+   roster and 2-column frieze cells go narrow enough to wrap hard; one more
+   compression step keeps every stage inside one viewport without hiding
+   anything — smaller courses, same anatomy. */
+@media (max-width: 639px) and (max-height: 400px) {
+  #roster.stage .dedication {
+    padding: var(--space-3xs) var(--space-3xs) var(--space-2xs);
+  }
+  #roster.stage .dedication-name {
+    font-size: 0.8125rem;
+  }
+  #roster.stage .dedication-role {
+    font-size: 0.75rem;
+    line-height: 1.25;
+  }
+  #roster.stage .dedication-mode {
+    font-size: 0.5625rem;
+    padding: 0.125rem 0.375rem;
+  }
+  #frieze.stage .frieze-line {
+    row-gap: var(--space-2xs);
+  }
+  #frieze.stage .milestone-title {
+    font-size: 0.8125rem;
+  }
+  #frieze.stage .milestone-line {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+}
+
+/* ==========================================================================
+   14b. THE HUD SPINE — the orientation system (js/stages.js builds the nav)
+   --------------------------------------------------------------------------
+   A fixed crimson spine at the right edge: one tick per stage, the active
+   tick LIT + ELONGATED with its mono stage label beside it (HERO / WALL 1..N
+   / ROSTER / FRIEZE / FOOTER — label shown at >= 1180px only, always inside
+   the reserved --spine-band gutter; see THE SPINE CLEARANCE below). The
+   ticks are real buttons — keyboard-focusable,
+   aria-labeled "Go to <stage>", 44px targets — scrolling the console to the
+   stage on activation. The spine is the console's instrument, not decoration:
+   crimson (the one active accent) marks where the machine IS. It is injected
+   at the END of <body>, so the DOM tab order stays content-first (the skip
+   link remains the first focusable element). No-JS: never built.
+   ========================================================================== */
+
+.spine {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 5; /* above stages + field, below the scanline overlay          */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.spine-tick {
+  box-sizing: border-box;
+  position: relative; /* the label's absolute seat (W3 CLS fix, below)     */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2xs);
+  width: 44px;        /* FIXED box (W3 CLS fix): the appearing label never  */
+  min-width: 44px;    /* resizes any tick and no tick's box ever moves —   */
+  min-height: 44px;   /* the tap/focus floor every other control obeys     */
+  padding: 0 var(--space-2xs) 0 var(--space-3xs);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* The tick itself: a drawn rule (the world's line language), resting dim
+   chrome, active crimson + elongated + lit — the graded accent, spent
+   exactly where the machine acts. W3 CLS fix: the elongation is a
+   right-anchored SCALE, not a width change — transform-only changes are
+   exempt from layout-shift, so the lit state costs nothing (the bar's
+   layout box stays 14x2 forever; 14 x 1.86 = 26, 2 x 1.5 = 3 — the exact
+   W1 geometry, glow and all). */
+.spine-bar {
+  display: block;
+  width: 14px;
+  height: 2px;
+  background: var(--chrome-dim); /* 6.55:1 on ground (non-text)            */
+}
+.spine-tick:hover .spine-bar,
+.spine-tick:focus-visible .spine-bar {
+  background: var(--chrome);
+}
+.spine-tick.is-active .spine-bar {
+  transform: scale(1.86, 1.5);
+  transform-origin: right center;
+  background: var(--crimson); /* 4.60:1 on ground (non-text)               */
+  box-shadow: 0 0 8px rgba(229, 56, 59, 0.55); /* the lit-state glint      */
+}
+
+/* The active stage's label: mono caps on a near-opaque ground chip, seated
+   left of its tick so it never leaves the spine's column. Inactive ticks
+   keep no visible label (aria-labels carry their names — the spine reads
+   as an instrument, one line at a time). W3 CLS fix: the label is
+   ABSOLUTELY positioned out of the tick's flow — appearing/changing it
+   moves no layout box anywhere (the W2 flow label resized its tick and
+   shifted the whole column on every stage change: measured 0.0077 summed
+   over a walk, incl. a load-time font-swap entry real users see counted). */
+.spine-label {
+  display: none;
+  position: absolute;
+  right: calc(100% + var(--space-2xs));
+  top: 50%;
+  transform: translateY(-50%);
+  padding: var(--space-3xs) var(--space-2xs);
+  background: rgba(11, 13, 16, 0.9);
+  border-bottom: var(--hairline) solid rgba(229, 56, 59, 0.42);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-micro);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome); /* ~12.5:1 on the ground chip — logged B1 pair     */
+  white-space: nowrap;
+}
+.spine-tick.is-active .spine-label {
+  display: block;
+}
+
+/* --- The spine clearance (V4-1, closing refinement) ---------------------------
+   THE DEFECT (closing critique, confirmed by per-glyph range-rect probes on
+   this tree at five tiers): the label chip hangs LEFT of its tick, so on every
+   tier where content runs to the page gutter the chip sat on real ink at the
+   stage's resting state — measured covers: desktop 1440x700 shaves the third
+   roster column's role line ("…ue, and", 49x7px of ascender row, ink to
+   x1365.7); rotated 844x390 covers wall plate-title/description tails, five
+   roster role characters and fourteen frieze-line characters; phone 390/320
+   cover the Overlord role-line tail (28 chars, ink to x342.6), frieze course
+   text, the footer archive line and even the hero category's third line.
+
+   THE FIX, two halves (the critique's own options, combined — with the tier
+   line drawn where the console's anatomy actually changes):
+
+   1. >= 1180px (the horizontal-frieze / wide-wall tiers) — THE RESERVED
+      BAND. Stages take the spine's whole instrument rail as their right
+      inset, so the content column can PHYSICALLY never reach the chip:
+      --spine-band = the 44px tick box + the seat gap + the chip + left
+      breathing. Chip arithmetic (measured, Martian Mono 700 at 11px, 0.14em
+      tracking, 8px side padding): the longest live label is six characters
+      (ROSTER / FRIEZE / FOOTER / WALL N) at 71.5px; --spine-chip reserves
+      81px — one character beyond the longest possible label for a long
+      time to come (a 7-char "WALL 10" needs 37+ builds at the 2x2 tier).
+      Remeasure --spine-chip if labels ever grow past seven chars.
+      #roster takes its inset as MARGIN (the chamfer-frame technique keeps
+      its padding); #hero needs an ID-level rule (the stacked-era #hero
+      sets padding at ID specificity); #footer takes the margin route so its
+      bookend frame stays 1px and the rail sits over open ground. The band
+      replaces the page gutter where it exceeds it (max()) — the label
+      floats in open ground, right-anchored to its tick, at every stage.
+
+   2. < 1180px — NO PERSISTENT LABEL. Below 640 (the pager tier) the
+      readout band already names the stage's place ("SCREEN 04 / 13") and
+      the lit tick still marks it — the chip that covered 63-71px tails on
+      a 390px stage simply stops existing. Between 640 and 1179 (the stele
+      tier) the same drop is forced by the one-viewport floor, measured on
+      this tree: with the 141px band reserved, the single-column stele
+      stands 850-905px at 640-768px widths (band off: it fits its viewport
+      exactly), so reserving the rail there breaks "every stage is exactly
+      one viewport" across the 640-810 x 701-905 pocket — and patching
+      W3's verified stele repacks to save a label is the wrong trade. The
+      stele tier keeps W3's geometry byte-identical and orients tick-only
+      (wall stages there still carry their "SCREENS / PAGE" readouts; the
+      ticks' aria-labels still name every stage, so keyboard and
+      screen-reader semantics are unchanged everywhere).
+
+   CLS: both halves are load-time CSS, not runtime state — nothing here can
+   shift after first paint, and the label keeps the W3 discipline (fixed
+   44px tick boxes, absolutely-positioned label, transform-only elongation).
+   No transitions added. The no-JS page never sees any of it: every rule is
+   gated on html.staged or scoped to the spine the stages script builds. */
+
+html.staged {
+  --spine-chip: 81px; /* measured worst 6-char chip 71.5px + one char headroom */
+  --spine-band: calc(44px + 2 * var(--space-2xs) + var(--spine-chip)); /* 141px */
+}
+
+@media (min-width: 1180px) {
+  /* Padding-side stages: #hero needs its own ID-level rule (the stacked-era
+     #hero sets padding at ID specificity, which out-ranks any class
+     selector); #wall + the generated #wall-N pages have no ID padding rule,
+     so the .stage rule carries them. */
+  html.staged .stage,
+  html.staged #hero.stage {
+    padding-right: max(var(--gutter), var(--spine-band));
+  }
+  /* Frame-drawn stages (#roster's chamfer band, #footer's bookend) take the
+     band as MARGIN instead — their hairline frames are painted through their
+     own padding, so widening that padding would fatten the frame; the margin
+     keeps the frame at 1px and leaves the rail over open ground. */
+  html.staged #roster.stage,
+  html.staged #footer.stage {
+    margin-right: max(var(--gutter), var(--spine-band));
+  }
+}
+
+/* The stele tier and the pager tier run tick-only: the label span stays in
+   the DOM (display: none) — the tick's aria-label still names the stage. */
+@media (max-width: 1179.98px) {
+  .spine-tick.is-active .spine-label {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   14c. FOREIGN BLOCK (V3 THE ARCHIVE, task S3) — integrated, flagged
+   --------------------------------------------------------------------------
+   The .archive-anchor is the parallel archive workstream's one carved line
+   to skills.html. It shipped as a sibling AFTER the footer plate (a stacked-
+   document placement) while W1 was building the stage console — where an
+   element past the last stage sits BELOW the console's final fold: measured,
+   it stood at anchorTop 900 of a 900px viewport at the FOOTER rest position,
+   visible only after one deliberate extra gesture past the last snap point
+   (wheel and End key did reach it — but nothing at rest ever showed it).
+
+   RESOLUTION (flagged for the coordinator in the production log): the
+   element moved INSIDE the footer stage — byte-identical, its classes,
+   inline styles, href and text untouched — so the console's last stage
+   carries the page's last inscription visibly at its own rest position;
+   js/render.js's renderFooter now preserves foreign mount children across
+   re-renders, retiring the original reason for the outside placement. It
+   takes the stage's centered flow (the flex column centers plate + anchor
+   as one group); its own inline styles carry everything else. ONE W1 rule
+   below: the stage's chamfer frame fills #footer with the rule color, and
+   dim-chrome lettering directly on that fill measures ~3.1:1 — under the
+   body floor. On the plate field (the same metal the footer plate above
+   it wears) the anchor keeps the logged 5.32:1 chrome-dim/plate pair and
+   the footer reads as one continuous monument block. Markup untouched. */
+.archive-anchor {
+  background: var(--plate);
+  border-top: var(--hairline) solid var(--rule-on-plate);
+}
+
+/* ==========================================================================
+   14d. THE PHONE WALL PAGER (V4 W2 — task W2, IRON MAN + THOR)
+   --------------------------------------------------------------------------
+   Below 640px the wall is ONE console stage: a horizontally-paged gallery
+   INSIDE the one viewport. js/render.js builds it (one plate per x-page);
+   this section makes the two snap axes COEXIST:
+
+     - the pager scroller: scroll-snap-type x mandatory, one page per
+       screen width, snap-aligned center;
+     - GESTURE ROUTING: touch-action pan-x pan-y — a horizontal-dominant
+       pan locks to the pager (the only scroller that can move x), a
+       vertical-dominant pan chains straight to the y-mandatory root
+       console (the pager cannot scroll y), so vertical swipes keep
+       advancing stages and horizontal swipes keep paging screens;
+       overscroll-behavior-x: contain stops an end-of-wall flick from
+       becoming a history swipe, while the y axis keeps default chaining;
+     - the readout band: "SCREEN 04 / 13" (mono micro, chrome-dim on
+       ground 6.55:1 — W1's logged pair) left, two chevron buttons right;
+     - the chevrons: REAL buttons, 44px targets, aria-labeled by
+       render.js, drawn-geometry arrows in the world's line language
+       (chrome strokes on plate 10.43:1; hover crimson 3.74:1 — decorative
+       accent, the buttons carry the global :focus-visible ring). Disabled
+       at the wall's ends (the readout + disabled state carry the bounds).
+
+   One plate per page (the density decision, logged): a staged phone plate
+   stands ~330-374px at 390 and ~310px at 320 — two per page fits only the
+   tallest phones with no breathing room and never the 320x568 floor. ONE
+   per page is the same interface at every phone height: consistency >
+   density. The scrollbar is hidden (the readout, the chevrons and the
+   snap itself carry the affordance; the spine still marks the stage).
+   ========================================================================== */
+
+.stage-wall-pager {
+  --wall-max: none;
+}
+
+.wall-pager-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-md);
+  flex: 0 0 auto;
+  margin: 0 0 var(--space-2xs);
+}
+
+.wall-pager-head .wall-readout {
+  margin: 0;
+}
+
+.wall-pager-nav {
+  display: flex;
+  flex: 0 0 auto; /* the 44px targets never shrink under the head's flex   */
+  gap: var(--space-3xs);
+}
+
+.wall-chevron {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 44px;  /* the tap/focus floor every other control obeys */
+  height: 44px;
+  padding: 0;
+  background: var(--plate);
+  border: var(--hairline) solid var(--rule-strong);
+  box-shadow: var(--plate-edge);
+  cursor: pointer;
+}
+
+/* The drawn arrow: two strokes rotated into a chevron (the world's drawn
+   line language — no icon font, no raster). */
+.wall-chevron::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-left: 2px solid var(--chrome);   /* 10.43:1 on plate             */
+  border-bottom: 2px solid var(--chrome);
+}
+.wall-chevron-prev::before {
+  transform: rotate(45deg);
+}
+.wall-chevron-next::before {
+  transform: rotate(-135deg);
+}
+.wall-chevron:hover:not(:disabled),
+.wall-chevron:focus-visible {
+  border-color: rgba(229, 56, 59, 0.6); /* decorative tint, the logged class */
+}
+.wall-chevron:hover:not(:disabled)::before {
+  border-color: var(--crimson);          /* 3.74:1 on plate (non-text)     */
+}
+.wall-chevron:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.wall-pager {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain; /* an end flick never becomes history   */
+  overscroll-behavior-y: visible; /* vertical chains to the y console     */
+  touch-action: pan-x pan-y;      /* both axes free: the DOMINANT axis of
+                                      the gesture picks its scroller      */
+  scrollbar-width: none;          /* the readout + chevrons carry the
+                                      affordance; the snap carries the
+                                      behavior                           */
+}
+.wall-pager::-webkit-scrollbar {
+  display: none;
+}
+
+.wall-pager-page {
+  box-sizing: border-box; /* 100% includes the joint frame: one page per
+                             screen exactly, no peek of the next page      */
+  flex: 0 0 100%;
+  width: 100%;
+  min-height: 0;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--well);        /* the wall's shared backing field      */
+  padding: var(--space-3xs);      /* the mounting-joint frame             */
+}
+
+/* A pager plate: centered in its page, capped by it (the screen gives
+   way on the shortest phones — the same law as the desktop pages). */
+.stage-wall-pager .plate {
+  width: 100%;
+  max-width: 40rem;
+  max-height: 100%;
+  min-height: 0;
+}
+
+/* ==========================================================================
+   15. V4 W2 — STAGE CHOREOGRAPHY: the disappear/reappear illusion
+   --------------------------------------------------------------------------
+   THE OWNER'S SENTENCE, answered: "content dynamically disappears and
+   reappears as you're scrolling" while the interface stays one console.
+   One grammar, keyed on js/stages.js's SETTLED commits (never raw scroll
+   — a flick across two snap points cannot mis-fire it):
+
+     - THE RELEASE (disappear): the instant the settled stage's alignment
+       genuinely breaks ("ultron:stagedepart"), its content recedes —
+       opacity to 0.2, scale to 0.98, a 1.5px blur — over ~300ms, while
+       the old stage is still on screen. The state is .is-left, held by
+       every stage that is not the active one.
+     - THE ASSEMBLY (reappear): when a stage SETTLES as active
+       ("ultron:stagesettle" — the same task that flips the spine tick),
+       its content re-enters on the established ignite grammar over
+       --dur-rise (0.6s): plates rise on the 55ms drain, dedications at
+       70ms, frieze nodes sweep at 60ms, hero and footer groups at 90ms
+       (js/motion.js section 6 strikes the classes).
+
+   CHANNEL DISCIPLINE: opacity / transform / filter ONLY — never a layout
+   property, never display/visibility, so off-stage content NEVER leaves
+   the accessibility tree (opacity-dimmed stages remain in the AX tree;
+   verified in the W2 harness: all 13 plates present post-transition).
+   The dim and the rises apply to the stage's CONTENT children — never to
+   .stage itself and never to #hero-field (a transformed ancestor would
+   re-anchor the fixed persistent canvas; the field stays continuous
+   through every swap, structurally exempt from every rule here).
+
+   CONTRAST: the active stage is never dimmed (the commit removes
+   .is-left from the entering stage before anything assembles); dimmed
+   stages are transient-decorative — they are mid-disappearance or
+   off-screen, and their text is never the text being read.
+
+   REDUCED MOTION: the kill block at the end of this section neutralizes
+   every rule here (nothing offsets, nothing dims, no transitions) and
+   js/motion.js never arms under the preference — stages swap by instant
+   snap with the full page complete at all times.
+   ========================================================================== */
+
+/* The dim/rise channel on every stage content child (the canvas is
+   structurally exempt — see the header). Entry offsets live ONLY under
+   the .stage-armed class js/motion.js adds in the same DOMContentLoaded
+   task as the render, so no-JS / no-IO / reduced-motion never hide
+   anything (the W1/W4 progressive-enhancement rule, extended). */
+html.staged .stage-armed > *:not(#hero-field) {
+  transition:
+    translate var(--dur-rise) var(--ease-ignite),
+    opacity var(--dur-rise) var(--ease-ignite),
+    transform 0.3s var(--ease-ignite),
+    filter 0.3s var(--ease-ignite);
+}
+
+/* THE RELEASE — the DEPARTING stage only, TRANSIENT (W3 fix of record):
+   js/motion.js adds .is-departing on "ultron:stagedepart" and removes it at
+   the following settle's strip, so the dim runs only while the stage is
+   visibly in flight. W2 originally hung this on .is-left, which persists on
+   EVERY non-active stage at rest — and because :not(#hero-field) lends that
+   rule ID-grade specificity, it out-ranked the pre-entry offsets below,
+   leaving off-stage text at a COMPUTABLE opacity .2 for axe's color-contrast
+   pass (28 violations). The resting recessive state is the pre-entry state
+   (opacity 0 — the same below-fold class the pre-W4 wall always shipped,
+   which axe reports as its known incomplete/triage class, never a
+   violation); the .2/scale/blur release itself is unchanged mid-flight.
+   .is-left REMAINS as motion.js's resting marker (re-strike bookkeeping)
+   — it carries no styles of its own now. */
+html.staged .stage-armed.is-departing > *:not(#hero-field) {
+  opacity: 0.2;
+  transform: scale(0.98);
+  filter: blur(1.5px);
+  transition:
+    translate 0.3s var(--ease-ignite),
+    opacity 0.3s var(--ease-ignite),
+    transform 0.3s var(--ease-ignite),
+    filter 0.3s var(--ease-ignite);
+}
+
+/* THE ASSEMBLY — pre-entry offsets, gated on .stage-armed exactly as the
+   wall's are on .wall-armed (css section 12). The plates' own rise is
+   section 12's grammar, untouched. */
+html.staged .stage-armed .hero-lintel:not(.is-risen),
+html.staged .stage-armed #stats:not(.is-risen),
+html.staged .stage-armed .wall-readout:not(.is-risen),
+html.staged .stage-armed .wall-pager-head:not(.is-risen),
+html.staged .stage-armed .frieze-line:not(.is-risen),
+html.staged .stage-armed .footer-plate:not(.is-risen),
+html.staged .stage-armed .archive-anchor:not(.is-risen),
+html.staged .stage-armed .dedication:not(.is-risen) {
+  translate: 0 18px;
+  opacity: 0;
+}
+
+/* The dedications rise individually (70ms steps from js/motion.js), so
+   they carry their own channel under the arming class — the band's chip
+   bloom (.is-ignited) is section 7's, re-struck with the rise. */
+html.staged .stage-armed .dedication {
+  transition:
+    translate var(--dur-rise) var(--ease-ignite),
+    opacity var(--dur-rise) var(--ease-ignite);
+}
+
+/* --- prefers-reduced-motion: W2's grammar, killed -----------------------------
+   js/motion.js never arms the choreography under the preference (and a
+   live switch strips every class); this block is the belt-and-braces CSS
+   half — every offset neutralized, every dim lifted, no transitions. The
+   console swaps by instant snap; the page is complete at all times. */
+@media (prefers-reduced-motion: reduce) {
+  html.staged .stage-armed > *:not(#hero-field),
+  html.staged .stage-armed .dedication {
+    transition: none;
+  }
+  /* W3: the release rule moved to .is-departing (see the section above);
+     both markers are neutralized here regardless. */
+  html.staged .stage-armed.is-left > *:not(#hero-field),
+  html.staged .stage-armed.is-departing > *:not(#hero-field) {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  html.staged .stage-armed .hero-lintel:not(.is-risen),
+  html.staged .stage-armed #stats:not(.is-risen),
+  html.staged .stage-armed .wall-readout:not(.is-risen),
+  html.staged .stage-armed .wall-pager-head:not(.is-risen),
+  html.staged .stage-armed .frieze-line:not(.is-risen),
+  html.staged .stage-armed .footer-plate:not(.is-risen),
+  html.staged .stage-armed .archive-anchor:not(.is-risen),
+  html.staged .stage-armed .dedication:not(.is-risen) {
+    translate: none;
+    opacity: 1;
+  }
+}

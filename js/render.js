@@ -48,6 +48,22 @@
      from the current window.ULTRON_DATA (idempotent; used by the disposable
      validation harness, harmless in production).
 
+   V4 W1 — THE WALL PAGINATES INTO STAGES (this file's structural change):
+   #wall is the FIRST wall page; this pipeline chunks the validated builds
+   into PAGE stages at the live viewport tier (>=1280px: 3x2 pages of six;
+   640-1279: 2x2) and inserts the later pages (#wall-2, #wall-3, ...) as
+   .stage.stage-wall siblings after #wall inside <main>. A final page
+   holding exactly one screen becomes the FEATURED FINALE (the newest
+   build alone on a full stage). Old #wall anchors keep working; a tier
+   change on resize re-paginates in place, keeps the visitor on the same
+   page index, and dispatches document event "ultron:wallpages" (stages.js
+   rebuilds the spine, motion.js re-arms ignition, field.js re-measures).
+   V4 W2 — PHONE TIERS (<640px): the wall is ONE stage holding a
+   horizontal scroll-snap pager (one plate per x-page, "SCREEN 04 / 13"
+   readout, chevron buttons); page settles dispatch "ultron:wallpage"
+   (motion.js ignites that page) and window.ULTRON_WALL exposes
+   current()/goto() to the console (stages.js deep-links #wall-N).
+
    Rendering is semantic and token-only: this file adds NO styles. All
    classes (plate-*, stat-*, dedication-*, milestone-*, footer-*) are stable
    hooks for B2-B5. All data-derived text is set via textContent — never
@@ -139,7 +155,12 @@
      attributes so the browser reserves the box before the bytes arrive —
      no CLS, and no file reads at runtime. Only positive integers become
      attributes: a hand-edited bad dim loses its attr, never breaks the
-     plate. Built as elements with .src — never innerHTML. */
+     plate. Built as elements with .src — never innerHTML.
+     V4 W1: the wrapper also carries the shot's aspect-ratio inline (from
+     the same data dims, the universal 1312/820 grammar when absent) — in
+     the staged wall (styles.css section 14a) the screen is the plate's
+     flexible element, so its box ratio must come from data for the
+     natural-height plate to reserve the exact box. */
   function plateShot(build) {
     if (typeof build.image !== "string" || build.image.trim() === "") return null;
     function dim(value) {
@@ -151,9 +172,12 @@
     img.alt = build.title + " — experiment screenshot";
     img.loading = "lazy";
     img.decoding = "async";
-    if (dim(build.imageWidth)) img.setAttribute("width", String(build.imageWidth));
-    if (dim(build.imageHeight)) img.setAttribute("height", String(build.imageHeight));
+    var w = dim(build.imageWidth) ? build.imageWidth : 1312;
+    var h = dim(build.imageHeight) ? build.imageHeight : 820;
+    img.setAttribute("width", String(w));
+    img.setAttribute("height", String(h));
     var screen = el("div", "plate-screen");
+    screen.style.aspectRatio = w + " / " + h;
     screen.appendChild(img);
     return screen;
   }
@@ -275,64 +299,372 @@
      an unusable url/sourceUrl still renders its plate; only that link is
      omitted (the loader already rejects such entries — this is the
      per-plate safety net, so a plate can never lose its whole body). */
-  function renderWall(mountNode, builds) {
-    mountNode.textContent = "";
-    mountNode.appendChild(sectionHeading("The nameplate wall"));
-    if (!Array.isArray(builds) || builds.length === 0) {
-      mountNode.appendChild(emptyState(
+  function buildPlate(build) {
+    var plate = el("article", "plate");
+    plate.id = "plate-" + build.id;
+    plate.setAttribute("data-build", build.id);
+
+    /* V2: the lit screen, FIRST in the plate — the redesign reads
+       image-first (css/styles.css section 10 frames it). plateShot()
+       returns the wrapper; an entry without a usable image gets
+       nothing here: the plate below is the styled fallback (css
+       section 10's :has()-gated unlit-screen emblem; engines without
+       :has() keep the v1 anatomy). */
+    var shot = plateShot(build);
+    if (shot !== null) {
+      plate.appendChild(shot);
+    }
+
+    /* D1: the plate title is an h3 under the wall's h2 (heading system,
+       see sectionHeading above; resolves A3 deviation #5). */
+    plate.appendChild(el("h3", "plate-title", build.title));
+    plate.appendChild(el("p", "plate-description", build.description));
+
+    var tags = el("ul", "plate-tags");
+    for (var t = 0; t < build.tags.length; t++) {
+      tags.appendChild(el("li", "plate-tag", build.tags[t]));
+    }
+    plate.appendChild(tags);
+
+    var links = el("p", "plate-links");
+    if (isHttpUrl(build.url)) {
+      links.appendChild(externalLink(
+        build.url, "LIVE", "plate-link plate-link-live", "Open " + build.title + " live"
+      ));
+    }
+    if (isHttpUrl(build.sourceUrl)) {
+      links.appendChild(externalLink(
+        build.sourceUrl, "SOURCE", "plate-link plate-link-source", build.title + " source on GitHub"
+      ));
+    }
+    if (links.firstChild !== null) {
+      plate.appendChild(links);
+    }
+    return plate;
+  }
+
+  /* --- V4 W1: wall PAGINATION into stage pages ------------------------------ */
+
+  /* The pagination tier from the live viewport (styles.css section 14a owns
+     the anatomy that makes any of these tracks fit one stage). The desktop
+     tier is the committed shape: 3 columns x 2 rows = six screens per page,
+     13 screens -> 6 / 6 / 1, the 1 a FEATURED FINALE. The tiers below it
+     are computed by the same rule (any count, any viewport): 2x2 mid. V4 W2
+     replaces W1's interim phone tier (1x2 vertical pages) with THE HORIZONTAL
+     PAGER: below 640px the wall is ONE stage holding a scroll-snap x-pager
+     of one plate per page (measured judgment: a plate stands ~330-374px at
+     390 and ~310px at 320 — two per page only fits the very tallest phones
+     with no breathing room and never the 320x568 floor; ONE per page keeps
+     every phone height the same interface — consistency > density). */
+  function wallTier() {
+    var w = window.innerWidth || document.documentElement.clientWidth || 0;
+    if (w >= 1280) return { cols: 3, rows: 2 };
+    if (w >= 640) return { cols: 2, rows: 2 };
+    return { pager: true, cols: 1, rows: 1 };
+  }
+
+  function chunkPages(items, per) {
+    var pages = [];
+    for (var i = 0; i < items.length; i += per) {
+      pages.push(items.slice(i, i + per));
+    }
+    return pages;
+  }
+
+  function wallPageId(pageIndex) {
+    return pageIndex === 0 ? "wall" : "wall-" + (pageIndex + 1);
+  }
+
+  /* "SCREENS 01–06 / 13" — the page's mono orientation band (styles.css
+     14a). Screen numbers are 1-based against the validated total. */
+  function wallReadout(first, last, total, page, pageCount, featured) {
+    var range = first === last
+      ? "SCREEN " + pad2(first) + " / " + total
+      : "SCREENS " + pad2(first) + "–" + pad2(last) + " / " + total;
+    var pageLine = "PAGE " + pad2(page) + " / " + pad2(pageCount) +
+      (featured ? " · FEATURED" : "");
+    var p = el("p", "wall-readout");
+    p.appendChild(el("span", null, range));
+    p.appendChild(el("span", null, pageLine));
+    return p;
+  }
+
+  function removeStaleWallPages(pageCount) {
+    /* Index 0 is the static #wall mount itself — never stale; stale pages
+       begin at index max(1, pageCount). */
+    for (var i = Math.max(1, pageCount); ; i++) {
+      var stale = document.getElementById(wallPageId(i));
+      if (!stale) break;
+      stale.parentNode.removeChild(stale); /* tier shrank: page is gone */
+    }
+  }
+
+  function dispatchWallPages() {
+    if (typeof CustomEvent === "function") {
+      document.dispatchEvent(new CustomEvent("ultron:wallpages"));
+    }
+  }
+
+  /* --- V4 W2: the phone WALL PAGER (horizontal swipe pages) ------------------- */
+
+  /* One stage, one viewport, thirteen x-pages: a scroll-snap-type:x
+     mandatory scroller of single-plate pages, a mono readout ("SCREEN
+     04 / 13", aria-live so the number speaks on settle) and two real
+     chevron buttons (44px, aria-labeled) that page it. Vertical gestures
+     pass through to the console (the y-mandatory root scroller): the
+     pager only ever scrolls x, so a vertical pan chains straight up —
+     the two snap axes coexist without conflict (css section 14d carries
+     the touch-action/overscroll rules). Page changes settle-keyed: the
+     readout, the chevron disabled states, and the document event
+     "ultron:wallpage" (js/motion.js ignites that page's plates on it)
+     all land at rest, never mid-swipe. */
+
+  var lastPagerIndex = 0; /* survives a same-tier re-render (rotation) */
+
+  function reducedMotionNow() {
+    var mq = typeof window.matchMedia === "function"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)")
+      : null;
+    return mq ? mq.matches : true;
+  }
+
+  function buildWallPager(firstMount, builds) {
+    firstMount.className = "stage stage-wall stage-wall-pager";
+    firstMount.textContent = "";
+    firstMount.appendChild(sectionHeading("The nameplate wall"));
+
+    var head = el("div", "wall-pager-head");
+    var readout = el("p", "wall-readout");
+    var readoutSpan = el("span", null, "");
+    readoutSpan.setAttribute("aria-live", "polite");
+    readout.appendChild(readoutSpan);
+    var nav = el("div", "wall-pager-nav");
+    var prev = el("button", "wall-chevron wall-chevron-prev");
+    prev.type = "button";
+    prev.setAttribute("aria-label", "Previous screen");
+    var next = el("button", "wall-chevron wall-chevron-next");
+    next.type = "button";
+    next.setAttribute("aria-label", "Next screen");
+    nav.appendChild(prev);
+    nav.appendChild(next);
+    head.appendChild(readout);
+    head.appendChild(nav);
+    firstMount.appendChild(head);
+
+    var pager = el("div", "wall-pager");
+    pager.setAttribute("role", "region");
+    pager.setAttribute(
+      "aria-label",
+      "The thirteen experiment screens — swipe horizontally or use the buttons");
+    var pages = [];
+    for (var i = 0; i < builds.length; i++) {
+      var page = el("div", "wall-pager-page");
+      page.appendChild(buildPlate(builds[i]));
+      pager.appendChild(page);
+      pages.push(page);
+    }
+    firstMount.appendChild(pager);
+    wireWallPager(pager, readoutSpan, prev, next, pages, builds.length);
+  }
+
+  function wireWallPager(pager, readoutSpan, prev, next, pages, total) {
+    var index = Math.max(0, Math.min(lastPagerIndex, total - 1));
+    var settleTimer = 0;
+
+    function pageWidth() {
+      /* The stride between pages (border-box widths, no gaps): exact even
+         if a future tier adds padding/gap to the scroller itself. */
+      if (pages.length > 1) return Math.max(1, pages[1].offsetLeft - pages[0].offsetLeft);
+      return pager.clientWidth || 1;
+    }
+    function currentIndex() {
+      var i = Math.round(pager.scrollLeft / pageWidth());
+      return Math.max(0, Math.min(total - 1, i));
+    }
+    function update() {
+      var i = currentIndex();
+      var changed = i !== index;
+      index = i;
+      lastPagerIndex = i;
+      readoutSpan.textContent = "SCREEN " + pad2(i + 1) + " / " + total;
+      prev.disabled = i === 0;
+      next.disabled = i === total - 1;
+      if (changed && typeof CustomEvent === "function") {
+        document.dispatchEvent(
+          new CustomEvent("ultron:wallpage", { detail: { index: i } }));
+      }
+    }
+    function goTo(i, smooth) {
+      i = Math.max(0, Math.min(total - 1, i));
+      var behavior = (!smooth || reducedMotionNow()) ? "auto" : "smooth";
+      try {
+        pager.scrollTo({ left: i * pageWidth(), behavior: behavior });
+      } catch (e) {
+        pager.scrollLeft = i * pageWidth(); /* ancient engines: direct set */
+      }
+    }
+    function settle() {
+      if (settleTimer) clearTimeout(settleTimer);
+      settleTimer = setTimeout(function () {
+        settleTimer = 0;
+        update();
+      }, 120);
+    }
+
+    prev.addEventListener("click", function () { goTo(index - 1, true); });
+    next.addEventListener("click", function () { goTo(index + 1, true); });
+    /* The scroll listener only manages the settle timer — zero reads on
+       the scroll hot path; the reads happen in the settle callback. */
+    pager.addEventListener("scroll", settle, { passive: true });
+    if ("onscrollend" in window) {
+      pager.addEventListener("scrollend", function () {
+        if (settleTimer) {
+          clearTimeout(settleTimer);
+          settleTimer = 0;
+        }
+        update();
+      });
+    }
+
+    /* Seat the restored page instantly, then paint the readout. */
+    if (index > 0 && pager.scrollLeft < pageWidth() * 0.5) goTo(index, false);
+    update();
+
+    /* The console-facing surface: stages.js reads current() when the wall
+       stage assembles (ignite the screen the visitor is ON) and drives
+       goto() from #wall-N deep links. Desktop tiers null it (guarded). */
+    window.ULTRON_WALL = {
+      current: function () { return currentIndex(); },
+      goto: function (screenNumber) {
+        goTo((parseInt(screenNumber, 10) || 1) - 1, false);
+      }
+    };
+  }
+
+  /* Renders every wall page stage (or, on phone tiers, the ONE pager
+     stage). Idempotent: pages are reused in place, extras removed. The
+     visitor's current wall page survives a re-render (same page index,
+     clamped) so a mid-session tier change — rotation, window resize —
+     never throws them off the wall. */
+  function renderWallPages(builds) {
+    var firstMount = mount("wall");
+    if (!firstMount) return;
+
+    /* Continuity: remember the active wall page before rebuilding. At the
+       initial render ULTRON_STAGES has no active stage yet — no scroll. */
+    var previousIndex = -1;
+    if (window.ULTRON_STAGES && typeof window.ULTRON_STAGES.getActiveId === "function") {
+      var activeId = window.ULTRON_STAGES.getActiveId();
+      if (activeId && activeId.indexOf("wall") === 0) {
+        var n = parseInt(activeId.split("-")[1], 10);
+        previousIndex = isNaN(n) ? 0 : n - 1;
+      }
+    }
+
+    var empty = !Array.isArray(builds) || builds.length === 0;
+    removeStaleWallPages(0);
+    firstMount.className = "stage stage-wall";
+    firstMount.textContent = "";
+    firstMount.appendChild(sectionHeading("The nameplate wall"));
+    if (empty) {
+      firstMount.appendChild(emptyState(
         /* R3 ($impeccable polish): sentence case, machine voice — file and
            schema hints preserved (owner recovery). */
         "The wall stands empty — data/builds.js holds no valid builds. Add an entry that satisfies the schema at the top of that file, and it rises."
       ));
+      dispatchWallPages();
       return;
     }
-    var grid = el("div", "wall-grid");
-    for (var i = 0; i < builds.length; i++) {
-      var build = builds[i];
-      var plate = el("article", "plate");
-      plate.id = "plate-" + build.id;
-      plate.setAttribute("data-build", build.id);
 
-      /* V2: the lit screen, FIRST in the plate — the redesign reads
-         image-first (css/styles.css section 10 frames it). plateShot()
-         returns the wrapper; an entry without a usable image gets
-         nothing here: the plate below is the styled fallback (css
-         section 10's :has()-gated unlit-screen emblem; engines without
-         :has() keep the v1 anatomy). */
-      var shot = plateShot(build);
-      if (shot !== null) {
-        plate.appendChild(shot);
-      }
-
-      /* D1: the plate title is an h3 under the wall's h2 (heading system,
-         see sectionHeading above; resolves A3 deviation #5). */
-      plate.appendChild(el("h3", "plate-title", build.title));
-      plate.appendChild(el("p", "plate-description", build.description));
-
-      var tags = el("ul", "plate-tags");
-      for (var t = 0; t < build.tags.length; t++) {
-        tags.appendChild(el("li", "plate-tag", build.tags[t]));
-      }
-      plate.appendChild(tags);
-
-      var links = el("p", "plate-links");
-      if (isHttpUrl(build.url)) {
-        links.appendChild(externalLink(
-          build.url, "LIVE", "plate-link plate-link-live", "Open " + build.title + " live"
-        ));
-      }
-      if (isHttpUrl(build.sourceUrl)) {
-        links.appendChild(externalLink(
-          build.sourceUrl, "SOURCE", "plate-link plate-link-source", build.title + " source on GitHub"
-        ));
-      }
-      if (links.firstChild !== null) {
-        plate.appendChild(links);
-      }
-      grid.appendChild(plate);
+    var tier = wallTier();
+    lastTierKey = tier.pager ? "pager" : tier.cols + "x" + tier.rows;
+    if (tier.pager) {
+      /* V4 W2: phone tiers — one wall stage, the horizontal pager. */
+      buildWallPager(firstMount, builds);
+      dispatchWallPages();
+      return;
     }
-    mountNode.appendChild(grid);
+    window.ULTRON_WALL = null; /* desktop/mid tiers: no pager surface */
+    var per = tier.cols * tier.rows;
+    var pages = chunkPages(builds, per);
+    /* The finale: a last page holding exactly one screen — featured only
+       when the tier's pages hold more than one (a 1-plate-per-page tier
+       would otherwise crown every page). */
+    var featuredIndex = (pages.length > 1 && per > 1 && pages[pages.length - 1].length === 1)
+      ? pages.length - 1
+      : -1;
+
+    var section = null;
+    var consumed = 0;
+    for (var i = 0; i < pages.length; i++) {
+      var page = pages[i];
+      var isFeatured = i === featuredIndex;
+      if (i === 0) {
+        section = firstMount;
+      } else {
+        var existing = document.getElementById(wallPageId(i));
+        if (!existing) {
+          existing = document.createElement("section");
+          existing.id = wallPageId(i);
+          section.parentNode.insertBefore(existing, section.nextSibling);
+        }
+        section = existing;
+      }
+      section.className = "stage stage-wall" + (isFeatured ? " stage-wall-featured" : "");
+
+      section.textContent = "";
+      section.appendChild(sectionHeading(isFeatured
+        ? "The nameplate wall, page " + (i + 1) + " of " + pages.length + " — the featured finale"
+        : (i === 0
+          ? "The nameplate wall"
+          : "The nameplate wall, page " + (i + 1) + " of " + pages.length)));
+
+      section.appendChild(wallReadout(
+        consumed + 1, consumed + page.length, builds.length,
+        i + 1, pages.length, isFeatured));
+
+      var grid = el("div", "wall-grid wall-page");
+      /* The finale page is ONE plate on ONE stage: a single cell, whatever
+         the tier's page shape is (a lone plate in a 3-col track measured
+         339px wide — the featured screen must own the stage). */
+      var cols = isFeatured ? 1 : tier.cols;
+      var rows = isFeatured ? 1 : tier.rows;
+      grid.style.gridTemplateColumns = "repeat(" + cols + ", minmax(0, 1fr))";
+      grid.style.gridTemplateRows = "repeat(" + rows + ", minmax(0, 1fr))";
+      for (var p = 0; p < page.length; p++) {
+        grid.appendChild(buildPlate(page[p]));
+      }
+      section.appendChild(grid);
+      consumed += page.length;
+    }
+    removeStaleWallPages(pages.length);
+
+    if (previousIndex >= 0) {
+      var keep = document.getElementById(
+        wallPageId(Math.min(previousIndex, pages.length - 1)));
+      if (keep && typeof keep.scrollIntoView === "function") {
+        keep.scrollIntoView({ block: "start" }); /* instant; snap realigns */
+      }
+    }
+    dispatchWallPages();
   }
+
+  /* Tier changes on resize re-paginate the wall in place (debounced; the
+     pages themselves are cheap DOM). Everything else is resize-stable. */
+  var lastTierKey = "";
+  var tierResizeTimer = 0;
+  window.addEventListener("resize", function () {
+    if (tierResizeTimer) clearTimeout(tierResizeTimer);
+    tierResizeTimer = setTimeout(function () {
+      tierResizeTimer = 0;
+      var data = window.ULTRON_DATA;
+      if (!data || !Array.isArray(data.builds) || data.builds.length === 0) return;
+      var tier = wallTier();
+      var key = tier.pager ? "pager" : tier.cols + "x" + tier.rows;
+      if (key === lastTierKey) return;
+      renderWallPages(data.builds);
+    }, 150);
+  });
 
   /* #roster — the six dedications (constant-driven; see header). */
   function renderRoster(mountNode) {
@@ -389,8 +721,18 @@
     mountNode.appendChild(line);
   }
 
-  /* #footer — attribution + sign-off (constant-driven; see header). */
+  /* #footer — attribution + sign-off (constant-driven; see header).
+     V4 W1: the mount may carry FOREIGN, non-render children (the S3
+     archive anchor — the page's last inscription — lives in this footer
+     stage's markup). The renderer preserves every element child that is
+     not its own .footer-plate across the clear, re-appending them AFTER
+     the plate in their original order: a re-render (test hook, future
+     pipelines) must never delete content it does not own. */
   function renderFooter(mountNode) {
+    var foreign = [];
+    for (var f = mountNode.firstElementChild; f; f = f.nextElementSibling) {
+      if (!(f.classList.contains("footer-plate"))) foreign.push(f);
+    }
     mountNode.textContent = "";
     var plate = el("div", "footer-plate");
 
@@ -405,6 +747,7 @@
 
     plate.appendChild(el("p", "footer-line", FOOTER.line));
     mountNode.appendChild(plate);
+    for (var k = 0; k < foreign.length; k++) mountNode.appendChild(foreign[k]);
   }
 
   /* --- Pipeline ------------------------------------------------------------ */
@@ -426,7 +769,7 @@
     var footerMount = mount("footer");
 
     if (statsMount) renderStats(statsMount, data.stats);
-    if (wallMount) renderWall(wallMount, data.builds);
+    renderWallPages(data.builds); /* V4 W1: pages + siblings (own mount) */
     if (rosterMount) renderRoster(rosterMount);
     if (friezeMount) renderFrieze(friezeMount, data.timeline);
     if (footerMount) renderFooter(footerMount);
