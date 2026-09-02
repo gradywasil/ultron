@@ -68,10 +68,17 @@
 
   /* Crimson glow — the ONE active accent (hover raises glow, never motion-
      heavy; B5 owns the animation). Committed-world effect, not decoration:
-     it marks the live/active state.                                       */
+     it marks the live/active state.
+     R3 ($impeccable quieter): --glow-crimson-strong (the old 30px OUTER
+     bloom) is RETIRED — its two wall call sites (plate hover + the boot
+     arrival flash) painted it on the un-clipped shell, so it washed the
+     NEIGHBORING cards' screens across the 4px mounting joints (the
+     glow-bleed finding, measured at 1440/1280/390). Card-owned ignition
+     is now INSET light clipped to each card's own chamfer box — the
+     values live at their sites in styles.css (sections 3 and 13), tuned
+     to the same alpha classes. --glow-crimson-soft stays: the archive
+     console's panels (css/skills.css) still spend it.                     */
   --glow-crimson-soft: 0 0 18px rgba(229, 56, 59, 0.22);
-  --glow-crimson-strong: 0 0 30px rgba(229, 56, 59, 0.38),
-                         0 0 6px rgba(229, 56, 59, 0.55);
 
   /* --- Type families (fallbacks per R1; V5 inserts the metric-matched
          local fallbacks between face and generic so the font-display swap

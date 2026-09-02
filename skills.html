@@ -22,6 +22,12 @@
        transforms a fully rendered document (and skips silently if the S2
        contract is not on the wall). -->
   <script src="js/skills-console.js" defer></script>
+  <!-- V3-R archive ember field: defer keeps it AFTER the console enhancer
+       (the front page's stages->field order). It paints ONLY when the
+       console is armed (js/skills-field.js pulls html.console-armed at
+       boot and listens for "ultron:archivearmed") — the stacked
+       degradation never lights a mote. -->
+  <script src="js/skills-field.js" defer></script>
 </head>
 <body>
   <!--
@@ -79,20 +85,51 @@
       (HTML-ARIA allowed-role tables); the entry keeps its own id — the
       deep-link anchor — untouched inside. ArrowUp/ArrowDown (desktop)
       and ArrowLeft/ArrowRight (chips) walk selection-follows-focus
-      across group boundaries; Home/End jump; the arrow walk uses
+      across group boundaries; Home/End jump; R4 adds the typeahead
+      accelerator — typing a printable prefix jumps to the next entry
+      beginning with it, wrapping the index (WAI-ARIA Tabs practice);
+      the arrow walk uses
       history.replaceState so browsing history records real selections,
       not every keystroke.
     - HASH: selection writes the entry's existing S2 anchor
       (#skill-<id> / #hero-<id>) — deep links select on load, browser
       back/forward traverse selections (hashchange); with no hash the
       first family entry is selected.
-    - MOTION: panel swaps are an opacity-only 120ms fade, declared only
-      outside prefers-reduced-motion; reduced motion renders everything
-      static, always.
+    - MOTION: V3-R ARCHIVE IGNITION — the wing carries the front page's
+      living energy, one moment at a time. (R1, 2026-09-02: the ember
+      field was RAISED from its original calm tier to the MAIN register —
+      one machine, one heartbeat; see the refinement log.) (1) An
+      archive-scoped ember field (js/skills-field.js — field.js's
+      archive-voiced sibling at the same register, never the same file)
+      breathes behind the console on ONE canvas declared below: the same
+      mote density/energy and the same sweep + echo heartbeat cadence as
+      the monument's field, its header restraint zones measured so the
+      lintel's text pairs hold their contrast floors; it lights only
+      when the console arms, pauses on tab-hidden, and paints ONE static
+      still under reduced motion with zero rAF ever. (2) ONE power-on
+      per selection: a scan sweep crosses the spec sheet once while the
+      panel's rows land in the ~60ms house cadence (name ->
+      lens/essence -> fields -> signature last, carving in), then
+      quiet. (3) The rail: an arrival flash on
+      the newly selected chip, one traveling pulse down the rail on
+      group switches, and a duty-cycle-safe idle shimmer on the lit tab
+      (armed only after the opening settles). (4) The census numeral
+      counts up once on first load with the field's power-on sweep.
+      Panel swaps keep the opacity-only 120ms fade beneath the
+      choreography. Reduced motion: zero animation, zero rAF, everything
+      fully readable in static lit states, always.
     - FINISH: unreviewed and undocumented is unfinished; this build ends
       with the disposable-harness proof pass (a-m) and its production-log
       entry. S4 re-verifies everything cold.
   -->
+  <!-- V3-R: the archive's living ground — the front page's persistent
+       canvas field, archive-voiced. Declared in markup, sized and
+       painted ONLY by js/skills-field.js, and only once the console is
+       armed: with scripting disabled (or any stacked degradation) it
+       stays an empty, invisible element — the canvas never initializes.
+       position:fixed behind the console chrome (css/skills.css owns the
+       stacking); aria-hidden + pointer-inert. -->
+  <canvas id="archive-field" aria-hidden="true"></canvas>
   <!-- D1 pattern (mirrored from index.html): the skip link is the page's
        FIRST focusable element, hidden until focused, jumping past the
        header band straight to the records (#archive-main carries
@@ -141,13 +178,16 @@
   <footer id="archive-footer">
     <!-- Static plate (the archive's footer carries no data mount): the
          attribution links in the monument's link anatomy plus the wing's
-         sign-off. Texts unique on the page (D1). -->
+         closing beat — the stamp register's final line (R4: sentence-case
+         machine voice, 36 chars, kin to the front page's "Visit logged"
+         stamp; css/skills.css seats the pair as one aligned plate band in
+         console mode). Texts unique on the page (D1). -->
     <div class="archive-plate">
       <p class="archive-links">
         <a class="archive-link" href="https://graydonwasil.com/" rel="noopener">graydonwasil.com</a>
         <a class="archive-link" href="https://github.com/arrangedgodly" rel="noopener">github.com/arrangedgodly</a>
       </p>
-      <p class="archive-line">Every record carved by the machine the monument advertises.</p>
+      <p class="archive-line">Records complete — 27 of 27 on file.</p>
     </div>
   </footer>
 </body>

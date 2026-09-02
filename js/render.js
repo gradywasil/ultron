@@ -323,10 +323,11 @@
      V5 L1 — THE OPERATING SCREEN anatomy. The card is no longer a padded
      nameplate holding an inset thumbnail: the SCREEN is the card. The
      plate is a three-layer instrument:
-       article.plate            the interaction shell — hover/tilt transform,
-                                the outer ignition glow, the container-query
-                                context (styles.css sections 3/16; unclipped
-                                so the outer glow reads over neighbors)
+       article.plate            the interaction shell — hover/tilt transform
+                                and the container-query context (styles.css
+                                sections 3/16; no emission here since R3 —
+                                the ignition glow is clamped to each card's
+                                own chamfer box on the layers below)
          div.plate-body         the chamfered RIM layer — 1px of rule color
                                 under the field, both clipped by the same
                                 cut-corner polygon, so the hairline rim

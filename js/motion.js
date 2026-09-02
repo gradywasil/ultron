@@ -464,6 +464,47 @@
     }, GLITCH_MIN_MS + Math.floor(Math.random() * (GLITCH_MAX_MS - GLITCH_MIN_MS)));
   }
 
+  /* $impeccable delight — THE RETURN: the machine noticed the absence.
+     One acknowledgment when the tab becomes visible again — HERO's
+     wordmark bursts (the armed glitch, so it costs nothing new), every
+     other stage gets the console's own answer: the ACTIVE spine tick
+     flares once ($impeccable animate — THE INSTRUMENT ANSWERS; css
+     section 14 grammar). Gates: motion armed, reduced-motion off, at
+     most once per 8s so tab-flipping never machine-guns. fireGlitch
+     itself holds the swap-suppress window (a mid-swap return queues
+     into the rest). Visibility-only: no loops run while hidden, and
+     no-JS never runs. */
+  var RETURN_BURST_MIN_MS = 8000;
+  var lastReturnBurst = 0;
+  var returnFlareTimer = 0;
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState !== "visible") return;
+    if (!glitchArmed || prefersReducedMotion()) return;
+    var t = nowMs();
+    if (t - lastReturnBurst < RETURN_BURST_MIN_MS) return;
+    var active = window.ULTRON_STAGES && typeof window.ULTRON_STAGES.getActiveId === "function"
+      ? window.ULTRON_STAGES.getActiveId()
+      : "hero";
+    if (!active || active === "hero") {
+      var wm = document.querySelector(".hero-wordmark");
+      if (!wm) return;
+      lastReturnBurst = t;
+      fireGlitch(wm); /* wordmark on screen only while HERO is resident */
+    } else {
+      var tick = document.querySelector(".spine-tick.is-active");
+      if (!tick) return;
+      lastReturnBurst = t;
+      tick.classList.remove("is-return");
+      void tick.offsetWidth; /* restart the flare if one is live        */
+      tick.classList.add("is-return");
+      if (returnFlareTimer) clearTimeout(returnFlareTimer);
+      returnFlareTimer = setTimeout(function () {
+        returnFlareTimer = 0;
+        tick.classList.remove("is-return");
+      }, 500);
+    }
+  });
+
   /* Idempotent: the count-up's arm and init()'s degraded fallback race,
      the first one wins. Never arms under reduced motion (re-checked at
      arm time — a switch during the delay lands static). */
@@ -541,8 +582,16 @@
     } else if (stage.id === "frieze") {
       push(stage.querySelector(".frieze-line"));
     } else if (stage.id === "footer") {
+      /* R2 ($impeccable layout): the footer's three tiers tile ONE
+         composed plate (css section 6), so they rise as a single object —
+         the stamp joined the enterables and the stagger went 90 -> 0 (a
+         staggered rise would tear the slab at its seams). The stamp's
+         own carve still lands after the rise: stampFinish adds
+         .is-stamped BEFORE this strike, and its animation's `both` fill
+         holds the text carved-away through its 0.4s delay. */
       push(stage.querySelector(".footer-plate"));
       push(stage.querySelector(".archive-anchor"));
+      push(stage.querySelector(".footer-stamp"));
     }
     return list;
   }
@@ -647,7 +696,7 @@
       strikeRise(stageEnterables(stage), 0);  /* the whole line, quietly    */
       sweepFrieze(stage);                     /* then the sweep             */
     } else if (stage.id === "footer") {
-      strikeRise(stageEnterables(stage), 90); /* plate, then the archive line */
+      strikeRise(stageEnterables(stage), 0); /* the composed plate, as one */
     }
   }
 
@@ -668,9 +717,24 @@
     }
   }
 
+  /* $impeccable delight — THE FINISH STAMP: one acknowledgment the first
+     time the console settles on the FOOTER stage (either settle path —
+     class-only, so the reduced-motion branch stamps too and css's kill
+     switch renders the carve-in inert: the baked line simply stands).
+     Once per page life; no-JS never settles and never needs to — the
+     line is baked visible in index.html. */
+  var finishStamped = false;
+  function stampFinish(id) {
+    if (finishStamped || id !== "footer") return;
+    finishStamped = true;
+    var stamp = document.querySelector(".footer-stamp");
+    if (stamp) stamp.classList.add("is-stamped");
+  }
+
   function onStageSettle(evt) {
     var el = document.getElementById(evt && evt.detail ? evt.detail.id : "");
     if (!el || !el.classList.contains("stage-armed")) return;
+    stampFinish(el.id);
     if (prefersReducedMotion()) {
       el.classList.remove("is-left");
       el.classList.remove("is-departing");

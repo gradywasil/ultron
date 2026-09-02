@@ -451,10 +451,17 @@ html {
   flex-direction: column;
   min-width: 0;
   /* V5 L1 — THE OPERATING SCREEN. The plate is now the interaction SHELL:
-     an unclipped box carrying the hover/tilt transform, the outer ignition
-     glow (an outer box-shadow would be clipped by any clip-path here, so
-     the chamfer lives one layer down) and the container-query context.
-     All engraved metal moved to .plate-body below. */
+     an unclipped box carrying the hover/tilt transform and the
+     container-query context. All engraved metal moved to .plate-body below.
+     R3 ($impeccable quieter, the glow-bleed finding): the shell no longer
+     carries ANY emission — the old outer box-shadow (30px crimson bloom,
+     deliberately unclipped so it "read over neighboring plates") washed
+     the neighbors' screens across the 4px mounting joints at every tier
+     (measured: up to 68% of the below-neighbor's screen-top strip at 1440
+     hover). Card-owned ignition now lives INSIDE the card's own chamfer
+     box — the hover ring + bloom on .plate-frame below, section 13's
+     arrival flash on the chamfer-clipped ::after — so a card's glow dies
+     at its own bounds and reads as ITS OWN state, never the wall's. */
 }
 
 /* The chamfered RIM layer: 1px of rule color under the field, both layers
@@ -494,14 +501,23 @@ html {
 }
 
 /* Hover / keyboard presence RAISES the glow (surface brief: "hover raises
-   glow"): the shell lifts (transform only) and carries the strong OUTER
-   glow — unclipped, so it reads over neighboring plates — while the rim
-   ignites crimson and the frame's base ember deepens. The 2px lift + 1.02
-   scale is a static state change on the transform channel; section 16's
-   pointer tilt composes with it from inline style (fine pointers) and
-   yields back to this rule at rest.
-   B5 wired: the transform + box-shadow transition lives in section 7
-   (no layout properties; prefers-reduced-motion snaps it). */
+   glow") — R3 rebuilt the ignition as ZERO-MUTATION, CLAMPED light:
+   the shell lifts (transform only) and the rim tints crimson, while the
+   ignition bloom lives on a STATIC pseudo of the frame (.plate-frame::before
+   below) revealed by OPACITY — the same compositor-only pattern the sheen
+   (16c) and the arrival flash (13) already use. No box-shadow list mutates
+   at hover anywhere on the card: the old shell/screen/frame shadow swaps
+   re-rasterized the plate's composited layers at the exact moment the tilt
+   scaled them, and that combination painted the card's lit edge columns
+   ~10px past its bounds onto the neighbors' screens (measured; either swap
+   alone was clean, both together escaped). The pseudo is chamfer-clipped,
+   so the emission dies at the card's own bounds: the ignition reads HOT on
+   its own card — ring + inward-dying bloom + the deepened foot ember — and
+   the neighbors keep their screens. The 2px lift + 1.02 scale stays a
+   static transform state; section 16's pointer tilt composes with it from
+   inline style (fine pointers) and yields back to this rule at rest.
+   B5 wired: the transform transition lives in section 7 (no layout
+   properties; prefers-reduced-motion snaps it). */
 .plate:hover,
 .plate:focus-within {
   z-index: 1;
@@ -509,20 +525,44 @@ html {
      answer scales too — translateY(-2px) scale(1.02), the top of the
      sanctioned band (1.012 measured visually timid in the V3-B harness
      at the new plate size). Transform only (never a layout property);
-     z-index: 1 already lets the lifted plate read over its neighbors. */
+     z-index: 1 already lets the lifted plate read over its neighbors.
+     R3: no box-shadow here anymore — the shell is unclipped, so any
+     outer bloom it carried landed on the neighbors (the finding); the
+     ignition light lives on the clipped frame pseudo below. */
   transform: translateY(-2px) scale(1.02);
-  box-shadow: var(--glow-crimson-strong);
 }
 .plate:hover .plate-body,
 .plate:focus-within .plate-body {
   background: rgba(229, 56, 59, 0.5); /* the logged decorative ignition tint */
 }
-.plate:hover .plate-frame,
-.plate:focus-within .plate-frame {
+/* THE CONTAINED IGNITION (R3): the hover/keyboard bloom, painted ONCE —
+   a 1px crimson ring at the chamfered edge, a 26px bloom dying inward, and
+   the deepened foot ember — chamfer-clipped to the card's own box and
+   seated ABOVE the screen glass (z-index 1 over the positioned screen) so
+   the rim of the glass itself ignites. Revealed by opacity only on
+   intent; alpha classes match the retired outer glow (0.55 ring / 0.34
+   bloom). Scoped to image-bearing plates: the :has() fallback emblem
+   (section 10) owns ::before on image-less frames — those plates keep the
+   rim tint + ember ignition (and engines without :has() keep the same
+   graceful no-bloom path the emblem already ships). */
+.plate-frame:has(> .plate-screen)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1; /* above the screen glass; the info rows keep >= 4.5:1 under
+                 the bloom (the flash layer's own precedent, section 13)  */
+  clip-path: var(--corner-chamfer);
+  opacity: 0;
+  pointer-events: none;
   box-shadow:
-    inset 0 1px 0 rgba(201, 211, 221, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(229, 56, 59, 0.55),
+    inset 0 0 26px rgba(229, 56, 59, 0.34),
     inset 0 -28px 44px -26px rgba(229, 56, 59, 0.62);
+  transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.plate:hover .plate-frame:has(> .plate-screen)::before,
+.plate:focus-within .plate-frame:has(> .plate-screen)::before {
+  opacity: 1;
 }
 
 /* V2 — the lit-screen window (deleted the V1 dormant rule here; the full
@@ -1045,17 +1085,34 @@ html {
 }
 
 /* ==========================================================================
-   6. FOOTER PLATE — the close (finished by task B4)
+   6. FOOTER PLATE — the close (finished by task B4; recomposed R2)
    --------------------------------------------------------------------------
-   Full-bleed chamfered plate, bookending the counter band that opens the
-   page: the monument ends on engraved metal, not a bare link row. V4R2
-   (owner callout) — like the roster band, the frame travels with the
-   PLATE: #footer no longer paints the rule color (at the stage era's
-   100svh that paint escaped as a full-stage gray square); the plate
-   carries its own two-layer chamfered rim. The two attribution links
-   carry the wall's link anatomy (mono caps, drawn diamond, 44px tap
-   target, focus-visible ring from the global rule); the sign-off sits
-   under a short centered rule like plaque furniture.
+   R2 ($impeccable layout, the rerun critique's three-end-beats finding):
+   the close is ONE composed plate — a single chamfered slab tiled from the
+   footer's three stacked children (the plate the renderer owns plus the
+   two FOREIGN children it preserves: the archive anchor, the finish
+   stamp), carrying a deliberate three-tier hierarchy in one register
+   family, so the page ENDS landed instead of dissolving:
+
+     tier 1 — THE SMALL PRINT (the baseline): attribution links + build
+       tagline, chrome-dim mono, readout/tag sizes — the quiet under-layer;
+     tier 2 — THE LEAD (the dive): the archive anchor as the plate's lead
+       line — the nameplate register (Cinzel 700 at --size-title, full
+       chrome 10.43:1), sentence case (the Inscriptional Caps Rule's
+       long-line exception), its crimson underline always lit — the
+       strongest treatment short of crimson text;
+     tier 3 — THE WHISPER: the finish stamp, micro mono, sentence case —
+       smallest, last, the machine's parting line, carving in once.
+
+   THE SLAB TECHNIQUE (CSS-only — the renderer and the foreign-child
+   architecture are untouched): each tier paints the plate field through a
+   1px transparent border (V4R2's frame technique) with only its OWN edges
+   carrying the rim — the plate takes the top + sides + the chamfered TOP
+   corners, the anchor the sides, the stamp the sides + bottom + the
+   chamfered BOTTOM corners — so the three boxes tile into one continuous
+   chamfered plate, flush at zero margins. js/motion.js rises the three as
+   one object (the footer stagger went 90ms -> 0 and the stamp joined the
+   footer's enterables); the stamp's own carve still lands after them.
    ========================================================================== */
 
 #footer {
@@ -1063,18 +1120,20 @@ html {
      section 14 swaps it for the stage frame */
 }
 
+/* Tier 1 — the attribution small print. Rim on top + sides, chamfered top
+   corners (the token's own 12px cut, upper pair only), open at the foot
+   where the anchor's field continues the slab. */
 .footer-plate {
-  padding: var(--space-xl) var(--gutter) var(--space-lg);
-  /* The carved frame (V4R2 — see the roster band): rule color under the
-     plate, split by the 1px transparent border. */
+  padding: var(--space-md) var(--gutter) var(--space-sm);
   border: var(--hairline) solid transparent;
+  border-bottom: 0; /* flush slab seam — no rule between tiers            */
   background:
     linear-gradient(var(--plate), var(--plate)) padding-box,
     linear-gradient(var(--rule-strong), var(--rule-strong)) border-box;
-  clip-path: var(--corner-chamfer);
-  box-shadow:
-    inset 0 1px 0 rgba(201, 211, 221, 0.06),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  clip-path: polygon(
+    var(--chamfer) 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer),
+    100% 100%, 0 100%, 0 var(--chamfer));
+  box-shadow: inset 0 1px 0 rgba(201, 211, 221, 0.06);
   text-align: center;
 }
 
@@ -1087,6 +1146,12 @@ html {
   margin: 0;
 }
 
+/* R2: the attribution links step DOWN to the small-print register —
+   chrome-dim mono (5.32:1 on plate, the logged pair). They keep the
+   wall's link anatomy (mono caps, drawn diamond, 44px tap target,
+   focus-visible ring from the global rule) and WAKE to full chrome under
+   intent, the SOURCE grammar — the lead line above them is what carries
+   the plate's full chrome now. */
 .footer-link {
   box-sizing: border-box;
   display: inline-flex;
@@ -1098,7 +1163,7 @@ html {
   font-size: var(--size-readout);
   letter-spacing: var(--track-caps-wide);
   text-transform: uppercase;
-  color: var(--chrome); /* 10.43:1 on plate — B1 arithmetic */
+  color: var(--chrome-dim); /* 5.32:1 on plate — B1 arithmetic, small print */
   text-decoration: none;
 }
 /* Attribution diamonds use the inert hollow marker (the SOURCE
@@ -1113,6 +1178,9 @@ html {
 }
 
 .footer-link:hover {
+  color: var(--chrome); /* the inert link wakes under intent (no
+     transition: color is outside section 7's paint budget — it snaps,
+     the same instant wake .plate-link-source ships) */
   text-decoration: underline;
   text-decoration-color: var(--crimson);
   text-decoration-thickness: var(--hairline);
@@ -1123,17 +1191,155 @@ html {
   text-shadow: 0 0 10px rgba(229, 56, 59, 0.55);
 }
 
+/* The build tagline — the small print's second line: mono regular, tag
+   size, sentence case as authored. (It was the plate's LARGEST line —
+   serif, body size — the loudest voice in the old three-beat close; the
+   tagline is attribution, not display.) */
 .footer-line {
-  margin: var(--space-sm) 0 0;
+  margin: var(--space-2xs) 0 0;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-tag);
+  line-height: var(--leading-readout);
+  letter-spacing: 0.05em; /* the readout track, held AT the wide-tracking
+     floor (0.06em fires the detector's body-text limit; sentence-case
+     lines track a hair under the caps tokens) */
   color: var(--chrome-dim); /* 5.32:1 on plate — B1 arithmetic */
 }
-/* Short centered rule above the sign-off — engraved plaque furniture. */
-.footer-line::before {
-  content: "";
+
+/* Tier 2 — THE LEAD: the archive anchor, the page's primary closing
+   action (the dive), sized to the plate's lead line: the nameplate
+   register — Cinzel 700 at --size-title, full chrome, seated by the
+   engrave shadow, its crimson underline always lit (the ignition it
+   already carried). SENTENCE CASE: 59 characters is a long line, and the
+   Inscriptional Caps Rule's long-line exception (a caps run that long
+   reads as shouting — the same verdict that un-capped the degraded
+   passages) applies; every short label keeps its caps. R2 also moved the
+   anchor's styling HERE from its S3-era inline block (plus section 14c's
+   field/hover) so the footer's composition lives in one place — the
+   element itself stays the foreign child the renderer preserves, its
+   href and text byte-exact. */
+.archive-anchor {
   display: block;
-  width: 3rem;
-  margin: 0 auto var(--space-sm);
+  box-sizing: border-box;
+  margin: 0; /* a slab tier — flush under the small print              */
+  min-height: 44px; /* tap-target floor; the lead block far exceeds it  */
+  padding: var(--space-md) var(--gutter);
+  border: var(--hairline) solid transparent;
+  border-top: 0;   /* flush slab seams above and below —               */
+  border-bottom: 0; /* the field continues, no rules                   */
+  background:
+    linear-gradient(var(--plate), var(--plate)) padding-box,
+    linear-gradient(var(--rule-strong), var(--rule-strong)) border-box;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-title); /* the nameplate span: 22px floor, 30px cap */
+  line-height: var(--leading-title);
+  letter-spacing: 0.03em; /* mixed case: a whisper of the inscriptional
+     tracking (caps tracking is for caps runs) */
+  text-align: center;
+  color: var(--chrome); /* 10.43:1 on plate — the lead carries full chrome */
+  text-decoration: underline;
+  text-decoration-color: var(--crimson); /* the ignition, always lit    */
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 0.28em;
+  text-wrap: balance;
+  text-shadow: var(--engrave-text); /* seated like the nameplates */
+}
+/* THE DOOR ANSWERS (S3's rule, carried over): presence raises the glow —
+   a SNAP state by design (the house snaps its momentary glows; section
+   15's rise system owns this element's transition property at rest).
+   Paint-only, composing the engrave seat with the crimson bloom. */
+.archive-anchor:hover,
+.archive-anchor:focus-visible {
+  text-shadow: var(--engrave-text), 0 0 12px rgba(229, 56, 59, 0.5);
+}
+
+/* $impeccable delight — THE FINISH STAMP: the monument's last readout.
+   The machine tracked every stage the visitor walked, so the footer
+   acknowledges the completed visit once. R2 seats it as the slab's FOOT
+   TIER — the final whisper: micro mono, REGULAR weight, sentence case
+   (the markup's own case — the caps transform came off with the
+   recomposition: 46 characters of caps was the detector's second footer
+   finding, and the whisper should not shout), flanked by hairline rules
+   that read as stamp furniture. Baked fully visible; .is-stamped (added
+   once by motion.js on the first FOOTER settle) plays the carve-in —
+   opacity/transform/filter/text-shadow only, zero layout properties,
+   exponential arrival (0.16,1,0.3,1), crimson glow settling to none. The
+   kill switch at the end of this section renders the ignition inert under
+   reduced motion: the line simply stands. */
+.footer-stamp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin: 0; /* a slab tier — flush under the lead                     */
+  padding: var(--space-2xs) var(--gutter) var(--space-md);
+  border: var(--hairline) solid transparent;
+  border-top: 0; /* flush slab seam                                    */
+  background:
+    linear-gradient(var(--plate), var(--plate)) padding-box,
+    linear-gradient(var(--rule-strong), var(--rule-strong)) border-box;
+  clip-path: polygon(
+    0 0, 100% 0, 100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%, var(--chamfer) 100%,
+    0 calc(100% - var(--chamfer)));
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.5); /* the slab's dark foot
+     edge (V4R2's plate bevel, moved here with the rim) */
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular); /* the whisper: regular, not bold  */
+  font-size: var(--size-micro);
+  line-height: var(--leading-readout);
+  letter-spacing: 0.05em; /* the tagline's floor rule: sentence-case
+     tracks at the wide-tracking limit, not over it */
+  text-align: center;
+  color: var(--chrome-dim); /* 5.32:1 on plate (was 6.55 on open ground —
+     the composed plate takes the tier onto the field; the floor holds) */
+}
+.footer-stamp::before,
+.footer-stamp::after {
+  content: "";
+  width: 2.5rem;
+  flex: 0 0 auto;
   border-top: var(--hairline) solid var(--rule-on-plate);
+}
+.footer-stamp::before { transform-origin: right center; } /* rules grow  */
+.footer-stamp::after  { transform-origin: left center; }  /* from the text */
+.footer-stamp.is-stamped {
+  animation: stamp-carve 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* $impeccable animate — THE CLOSING BEAT: the slab rises as one
+     object first (R2: the footer's strike stagger went to 0 and this
+     tier joined the rise), so the acknowledgment lands AFTER it — `both`
+     holds the carved-away state through the delay, and the stamp reads
+     as the assembly's last word, not part of the furniture rising around
+     it. */
+  animation-delay: 0.4s;
+}
+.footer-stamp.is-stamped::before,
+.footer-stamp.is-stamped::after {
+  animation: stamp-rule 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.4s; /* rules bracket the text, closing last          */
+}
+@keyframes stamp-carve {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(2px);
+    text-shadow: 0 0 18px rgba(229, 56, 59, 0.55);
+  }
+  60% {
+    text-shadow: 0 0 14px rgba(229, 56, 59, 0.3);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+    text-shadow: none;
+  }
+}
+@keyframes stamp-rule {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
 
 /* ==========================================================================
@@ -1321,11 +1527,26 @@ html {
    JS (final counter values, ignition classes applied synchronously). */
 @media (prefers-reduced-motion: reduce) {
   .plate,
+  .plate-frame:has(> .plate-screen)::before, /* R3 contained ignition snaps */
   .milestone::before,
   .dedication-mode[data-mode="autonomous"]::before,
   .dedication-mode[data-mode="deadline"]::before,
   .footer-link {
     transition: none;
+  }
+  /* Delight finish stamp: the carve-in never plays; the baked line
+     stands at its final visible state (JS still adds .is-stamped —
+     classes apply, animations die here). */
+  .footer-stamp.is-stamped,
+  .footer-stamp.is-stamped::before,
+  .footer-stamp.is-stamped::after {
+    animation: none;
+  }
+  /* Animate answers: the spine's return flare snaps to its resting
+     state; the instrument still changes state — instantly, without
+     the bloom. (The door's hover glow is already a snap state.) */
+  .spine-tick.is-return .spine-bar {
+    animation: none;
   }
 }
 
@@ -1565,23 +1786,22 @@ html {
     inset 0 -1px 0 rgba(201, 211, 221, 0.07),
     inset 0 0 22px rgba(0, 0, 0, 0.35),
     0 0 16px rgba(201, 211, 221, 0.05);
-  /* B5's budget: box-shadow only (paint property, no layout);
-     intent-fired, matching the plate's own glow timing. */
-  transition: box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  /* R3: this list is the screen's ONE state — it never mutates (see the
+     note below), so the old box-shadow transition is retired with the
+     hover swap it served. */
 }
 
-/* Frame ignition on intent: the glass emission ignites crimson — the
-   screen answers the same presence that raises the plate's ember and the
-   body rim (sections 3/16). Paint-only, snapped under
-   prefers-reduced-motion. */
-.plate:hover .plate-screen,
-.plate:focus-within .plate-screen {
-  box-shadow:
-    inset 0 1px 0 rgba(0, 0, 0, 0.55),
-    inset 0 -1px 0 rgba(201, 211, 221, 0.07),
-    inset 0 0 22px rgba(229, 56, 59, 0.1),
-    0 0 22px rgba(229, 56, 59, 0.28);
-}
+/* R3: the screen's box-shadow NEVER mutates anymore. The old hover swap
+   (crimson outer bloom) was one of the two shadow mutations whose combined
+   hover re-raster painted the card's lit edge past its bounds onto the
+   neighbors (measured, logged in section 3's comment); the glass
+   ignition now arrives from ABOVE — the frame's contained ::before bloom
+   (section 3) seats over the glass rim — so the screen keeps ONE static
+   shadow list at every state. The base list below (the resting "window
+   reads ON" glass) is unchanged and measures clean: its faint chrome
+   emission never reaches the neighbors at rest (pixel-verified, R3
+   harness). */
+
 
 /* The shot itself: the intrinsic width/height attrs (data-driven) hold
    the aspect ratio, so width:100% + height:auto reserves the exact box
@@ -1619,7 +1839,10 @@ html {
     inset 0 0 22px rgba(0, 0, 0, 0.35);
 }
 
-/* --- prefers-reduced-motion: V2's one transition, killed ------------------- */
+/* --- prefers-reduced-motion: V2's transition class, killed ------------------
+   (R3 note: the screen's box-shadow no longer transitions at all — its
+   list is stateless since the hover swap was removed; this block stays as
+   the belt-and-braces kill for any future paint transition here.) */
 @media (prefers-reduced-motion: reduce) {
   .plate-screen {
     transition: none; /* states snap; every state is fully readable */
@@ -1984,21 +2207,31 @@ body.motion-armed .footer-plate {
 /* --- 3. The arrival flash ------------------------------------------------------- */
 
 /* The plate's ignition glow, flashed once as the rise lands. V5 L1: the
-   flash is split across the two layers exactly like the hover state —
-   .plate::after (unclipped shell) carries the strong OUTER glow;
-   .plate-frame::after (chamfered field) carries the inset crimson ring +
-   the deepened base ember. Opacity-only keyframes (compositor-driven);
-   the flash peaks as the 0.6s rise settles (delay 0.45s, peak inside the
-   ramp) and `forwards` holds the clean rest. Arming-gated: no-JS / no-IO /
-   reduced-motion never see it (and the pseudos stay transparent forever —
-   nothing is hidden by them; they are pure light). */
+   flash is split across the two layers exactly like the hover state — and
+   R3 clamps BOTH to the card's own bounds: .plate::after is CHAMFER-
+   CLIPPED (the same polygon as the body's rim) and carries the flash as
+   INSET light (a 1px crimson ring at the edge inside a 30px bloom dying
+   inward); .plate-frame::after (chamfered field) carries the inset
+   crimson ring + the deepened base ember. The boot flash reads as the
+   card's own face lighting — never as a wash over the neighbors'
+   screens (the old unclipped outer bloom crossed the 4px joints at
+   every tier; measured, then removed). Opacity-only keyframes
+   (compositor-driven); the flash peaks as the 0.6s rise settles (delay
+   0.45s, peak inside the ramp) and `forwards` holds the clean rest.
+   Arming-gated: no-JS / no-IO / reduced-motion never see it (and the
+   pseudos stay transparent forever — nothing is hidden by them; they are
+   pure light). */
 .plate::after {
   content: "";
   position: absolute;
   inset: 0;
+  clip-path: var(--corner-chamfer); /* R3: the emission dies at the card's
+                                       own bounds — same cut as the rim    */
   opacity: 0;
   pointer-events: none;
-  box-shadow: var(--glow-crimson-strong);
+  box-shadow:
+    inset 0 0 0 1px rgba(229, 56, 59, 0.6),
+    inset 0 0 30px rgba(229, 56, 59, 0.42);
 }
 .plate-frame::after {
   content: "";
@@ -2728,6 +2961,32 @@ html.staged .stage-wall {
   display: block;
 }
 
+/* $impeccable animate — THE INSTRUMENT ANSWERS: on a tab return away
+   from the hero, the console's own indicator acknowledges it — the
+   ACTIVE tick flares once (js/motion.js's return hook swaps .is-return
+   in and strips it at rest). The flare breathes on the lit bar's own
+   geometry (scale 1.86,1.5 in, brighter and broader at the peak, back
+   to the resting lit state) so it reads as the same instrument
+   brightening, never as a different mark. Transform + box-shadow only;
+   killed under prefers-reduced-motion (JS gates it too). */
+.spine-tick.is-return .spine-bar {
+  animation: spine-return-flare 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes spine-return-flare {
+  0% {
+    transform: scale(1.86, 1.5);
+    box-shadow: 0 0 8px rgba(229, 56, 59, 0.55);
+  }
+  40% {
+    transform: scale(2.35, 2.2);
+    box-shadow: 0 0 14px rgba(229, 56, 59, 0.85);
+  }
+  100% {
+    transform: scale(1.86, 1.5);
+    box-shadow: 0 0 8px rgba(229, 56, 59, 0.55);
+  }
+}
+
 /* --- The spine clearance (V4-1, closing refinement) ---------------------------
    THE DEFECT (closing critique, confirmed by per-glyph range-rect probes on
    this tree at five tiers): the label chip hangs LEFT of its tick, so on every
@@ -2827,23 +3086,19 @@ html.staged {
 
    RESOLUTION (flagged for the coordinator in the production log): the
    element moved INSIDE the footer stage — byte-identical, its classes,
-   inline styles, href and text untouched — so the console's last stage
-   carries the page's last inscription visibly at its own rest position;
-   js/render.js's renderFooter now preserves foreign mount children across
-   re-renders, retiring the original reason for the outside placement. It
-   takes the stage's centered flow (the flex column centers plate + anchor
-   as one group); its own inline styles carry everything else. ONE rule
-   below: the anchor wears the plate field itself (the same metal the
-   footer plate above it wears) with a hairline seat rule — originally
-   because the stacked-era #footer filled the stage with the rule color
-   (dim-chrome on that fill measured ~3.1:1); V4R2 moved the frame onto
-   the plate, and the field STAYS so the anchor keeps the logged 5.32:1
-   chrome-dim/plate pair and the footer reads as one continuous monument
-   block. Markup untouched. */
-.archive-anchor {
-  background: var(--plate);
-  border-top: var(--hairline) solid var(--rule-on-plate);
-}
+   href and text untouched — so the console's last stage carries the page's
+   last inscription visibly at its own rest position; js/render.js's
+   renderFooter now preserves foreign mount children across re-renders,
+   retiring the original reason for the outside placement.
+
+   R2 ($impeccable layout, the footer-ending finding): the anchor is now
+   THE LEAD of the one composed footer plate, and ALL of its styling lives
+   in section 6 (moved from this section's field/rule rules and from the
+   element's S3-era inline style block, so the footer's composition is
+   owned in one place). Nothing renders from this section — it stays as
+   the placement record. Markup stays byte-identical apart from the
+   removed inline style attribute.
+   ========================================================================== */
 
 /* ==========================================================================
    14d. THE PHONE WALL PAGER (V4 W2 — task W2, IRON MAN + THOR)
@@ -2999,7 +3254,9 @@ html.staged {
        ("ultron:stagesettle" — the same task that flips the spine tick),
        its content re-enters on the established ignite grammar over
        --dur-rise (0.6s): plates rise on the 55ms drain, dedications at
-       70ms, frieze nodes sweep at 60ms, hero and footer groups at 90ms
+       70ms, frieze nodes sweep at 60ms, the hero at 90ms, and the footer
+       slab at 0 — its three tiers rise as ONE plate (R2; the stamp's
+       own carve still lands after them, its 0.4s hold)
        (js/motion.js section 6 strikes the classes).
 
    CHANNEL DISCIPLINE: opacity / transform / filter ONLY — never a layout
@@ -3069,6 +3326,7 @@ html.staged .stage-armed .wall-pager-head:not(.is-risen),
 html.staged .stage-armed .frieze-line:not(.is-risen),
 html.staged .stage-armed .footer-plate:not(.is-risen),
 html.staged .stage-armed .archive-anchor:not(.is-risen),
+html.staged .stage-armed .footer-stamp:not(.is-risen),
 html.staged .stage-armed .dedication:not(.is-risen) {
   translate: 0 18px;
   opacity: 0;
@@ -3108,6 +3366,7 @@ html.staged .stage-armed .dedication {
   html.staged .stage-armed .frieze-line:not(.is-risen),
   html.staged .stage-armed .footer-plate:not(.is-risen),
   html.staged .stage-armed .archive-anchor:not(.is-risen),
+  html.staged .stage-armed .footer-stamp:not(.is-risen),
   html.staged .stage-armed .dedication:not(.is-risen) {
     translate: none;
     opacity: 1;

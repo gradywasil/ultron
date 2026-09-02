@@ -140,16 +140,28 @@
        of 900 at the FOOTER rest position, visible only at max scroll). -->
   <footer id="footer" class="stage stage-footer">
       <!-- S3 (V3 THE ARCHIVE, attempt 2): the monument's one carved line to the
-         documentation wing (skills.html). Originally a sibling AFTER the
-         footer plate (a stacked-document placement); V4 W1 moved the element
-         — byte-identical, classes/styles/text untouched — INSIDE the footer
-         stage, and js/render.js's renderFooter now PRESERVES foreign children
-         across re-renders (the original reason for the outside placement:
-         "render.js clears that mount on load"). Relocation flagged for the
-         coordinator in the W1 production-log entry. Self-contained per the
-         S3 file-ownership rule: inline styles over tokens.css variables only
-         (no second stylesheet link — this anchor is exactly one element). -->
-    <a class="archive-anchor" href="skills.html" style="display:flex;justify-content:center;align-items:center;min-height:44px;margin:0;padding:var(--space-md) var(--gutter);font-family:var(--font-mono);font-weight:var(--weight-bold);font-size:var(--size-readout);line-height:var(--leading-readout);letter-spacing:var(--track-caps-wide);text-transform:uppercase;text-align:center;color:var(--chrome-dim);text-decoration:underline;text-decoration-color:var(--crimson);text-decoration-thickness:var(--hairline);text-underline-offset:4px;">Further documentation — every skill and sub-skill, in depth</a>
+           documentation wing (skills.html). Originally a sibling AFTER the
+           footer plate (a stacked-document placement); V4 W1 moved the element
+           INSIDE the footer stage, and js/render.js's renderFooter PRESERVES
+           foreign children across re-renders. R2 ($impeccable layout, the
+           footer-ending finding) makes it THE LEAD of the one composed footer
+           plate — its styling moved from this element's S3-era inline block
+           into css/styles.css section 6, so the footer's composition is owned
+           in one place; href + text stay byte-exact. Foreign child still:
+           the renderer preserves it. -->
+    <a class="archive-anchor" href="skills.html">Further documentation — every skill and sub-skill, in depth</a>
+    <!-- $impeccable delight — THE FINISH STAMP. The machine notices the
+         visitor finish the walk (stage tracking literally observes it),
+         so the last inscription acknowledges the visit once: a baked,
+         always-readable line that carves in on the first FOOTER settle
+         (js/motion.js adds .is-stamped; css section 6 carries the
+         ignition and the reduced-motion kill). R2 seats it as the
+         composed plate's foot tier — the final whisper: micro mono,
+         sentence case (the caps transform came off; its 46-character
+         line was the detector's caps-length finding). Baked visible =
+         no-JS and screen readers get the line with zero motion. Foreign
+         child like the anchor above: renderFooter preserves it. -->
+    <p class="footer-stamp">Visit logged — the machine saw the whole thing</p>
   </footer>
 </body>
 </html>
