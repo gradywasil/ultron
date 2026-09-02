@@ -54,8 +54,12 @@
   /* Lettering seated into the plate (pair with --chrome text on --plate). */
   --engrave-text: 0 1px 0 rgba(0, 0, 0, 0.45);
   /* Corner treatment: cut-plaque chamfer. NOTE: clip-path clips borders,
-     so the hairline frame is made by an outer element filled with the rule
-     color and an inner element inset by --hairline, both clipped.         */
+     so a chamfered hairline frame is made either by an outer element
+     filled with the rule color and an inner element inset by --hairline
+     (both clipped — the stacked-era technique) or, since V4R2, by ONE
+     element painting the rule color under its field through a 1px
+     transparent border (background border-box/padding-box layers) —
+     the frame then follows the chamfer at any box size.               */
   --chamfer: 12px;
   --corner-chamfer: polygon(
     var(--chamfer) 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer),

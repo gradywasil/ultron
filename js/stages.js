@@ -8,10 +8,13 @@
 
      1. THE HUD SPINE — a fixed <nav class="spine"> at the end of <body>
         (content-first tab order; the skip link stays the first focusable
-        element): one real <button> per stage ("Go to HERO", "Go to WALL 1",
-        ...), 44px targets, scrolling the console to the stage on
-        activation. The active stage's tick is lit + elongated with its mono
-        label beside it. No-JS: never built (the noscript page scrolls as a
+        element): one real <button> per stage ("Go to HERO", "Go to
+        PROJECTS 1/3", ...), 44px targets, scrolling the console to the
+        stage on activation. The active stage's tick is lit + elongated
+        with its mono label beside it. The wall pages label as PROJECTS
+        <page>/<total> — computed from the live pagination, so any page
+        count at any tier reads true (3/3 at desktop, 1/1 at the phone
+        pager tier). No-JS: never built (the noscript page scrolls as a
         plain document).
 
      2. ACTIVE-STAGE TRACKING (W2: SETTLE-KEYED) — a passive scroll
@@ -60,16 +63,22 @@
 
   /* Every stage carries class .stage (index.html markup + render.js's wall
      pages); document order is spine order. Labels are the console's own
-     names: HERO / WALL 1..N / ROSTER / FRIEZE / FOOTER. */
-  function stageLabel(el, index, wallIndex) {
+     names: HERO / PROJECTS <page>/<total> / ROSTER / FRIEZE / FOOTER.
+     The wall label is derived from the live pagination (the tier decides
+     how many pages exist), never hardcoded. */
+  function isWallStage(node) {
+    return node.id === "wall" || /^wall-\d+$/.test(node.id);
+  }
+
+  function stageLabel(el, wallIndex, wallTotal) {
     switch (el.id) {
       case "hero": return "HERO";
       case "roster": return "ROSTER";
       case "frieze": return "FRIEZE";
       case "footer": return "FOOTER";
       default:
-        if (el.id === "wall" || /^wall-\d+$/.test(el.id)) {
-          return "WALL " + (wallIndex + 1);
+        if (isWallStage(el)) {
+          return "PROJECTS " + (wallIndex + 1) + "/" + wallTotal;
         }
         return null; /* an unknown .stage: not ours, not spined */
     }
@@ -78,12 +87,17 @@
   function collectStages() {
     stages = [];
     var nodes = document.querySelectorAll(".stage");
+    /* Total first: every wall page's label carries the live page count. */
+    var wallTotal = 0;
+    for (var w = 0; w < nodes.length; w++) {
+      if (isWallStage(nodes[w])) wallTotal++;
+    }
     var wallIndex = 0;
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
-      var label = stageLabel(node, i, wallIndex);
+      var label = stageLabel(node, wallIndex, wallTotal);
       if (label === null) continue;
-      if (node.id === "wall" || /^wall-\d+$/.test(node.id)) wallIndex++;
+      if (isWallStage(node)) wallIndex++;
       stages.push({ id: node.id, el: node, label: label, tick: null });
     }
   }
@@ -101,7 +115,7 @@
       tick.type = "button";
       tick.className = "spine-tick";
       tick.setAttribute("aria-label", "Go to " + stage.label);
-      tick.appendChild(elSpan("spine-label", stage.label));
+      tick.appendChild(labelSpan(stage.label));
       tick.appendChild(elSpan("spine-bar", ""));
       stage.tick = tick;
       bindTick(tick, stage);
@@ -114,6 +128,25 @@
     var s = document.createElement("span");
     s.className = className;
     if (text) s.textContent = text;
+    return s;
+  }
+
+  /* The visible chip seat. The wall pages' paged labels ("PROJECTS 1/3")
+     set on TWO lines — "PROJECTS" over "1 / 3" — so the chip stays inside
+     the spine's reserved band at every tier (a 12-character single line
+     would need ~2.2x the band; see THE SPINE CLEARANCE, styles.css
+     section 14b). The label IDENTITY (aria-label, ULTRON_STAGES.list())
+     stays the one-line "PROJECTS 1/3". */
+  function labelSpan(label) {
+    var s = elSpan("spine-label", "");
+    var paged = /^(PROJECTS) (\d+)\/(\d+)$/.exec(label);
+    if (paged) {
+      s.appendChild(document.createTextNode(paged[1]));
+      s.appendChild(document.createElement("br"));
+      s.appendChild(document.createTextNode(paged[2] + " / " + paged[3]));
+    } else {
+      s.textContent = label;
+    }
     return s;
   }
 

@@ -615,10 +615,17 @@ html {
    4. ROSTER — the dedication band (finished by task B4)
    --------------------------------------------------------------------------
    Six dedications carved into ONE monumental band — the counter band's own
-   technique: #roster paints the rule color and is clipped; .roster-band
-   sits 1px inside with its own clip, so the 1px chrome hairline frame
-   follows the cut corners. Inside, hairline seams (never floating cards)
-   divide the band: 3 x 2 at desktop, 2 x 3 at tablet, one course at phone.
+   technique: a chamfered frame of the rule color around a plate field.
+   V4R2 (owner callout) — THE FRAME TRAVELS WITH THE BAND: the stacked-era
+   technique painted the rule color on #roster itself (1px padding + twin
+   clips), which read as a hairline rim only while the section sized to
+   its content. The W1 stage refactor made every stage at least 100svh,
+   so that paint escaped as a full-stage gray square behind the band. The
+   rim is now the band's OWN two-layer chamfer — the rule color under the
+   plate, split by a 1px transparent border — which follows the cut
+   corners exactly and can never outgrow the band. Inside, hairline seams
+   (never floating cards) divide the band: 3 x 2 at desktop, 2 x 3 at
+   tablet, one course at phone.
 
    MODE CHIPS — a graded accent system (deliberate, logged B4). Crimson is
    the ACTIVE accent, so it marks how much machine acts, mirroring the
@@ -634,10 +641,8 @@ html {
    ========================================================================== */
 
 #roster {
-  margin: var(--section-gap) var(--gutter) 0;
-  padding: var(--hairline);
-  background: var(--rule-strong);
-  clip-path: var(--corner-chamfer);
+  margin: var(--section-gap) var(--gutter) 0; /* the band's seat (staged:
+     section 14 swaps the stacked margins for the stage frame) */
 }
 
 .roster-band {
@@ -646,7 +651,13 @@ html {
   list-style: none;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  background: var(--plate);
+  /* The carved frame (V4R2): rule color under the plate, split by the 1px
+     transparent border — one element, both clips agree, the rim follows
+     the chamfer at any box size. */
+  border: var(--hairline) solid transparent;
+  background:
+    linear-gradient(var(--plate), var(--plate)) padding-box,
+    linear-gradient(var(--rule-strong), var(--rule-strong)) border-box;
   clip-path: var(--corner-chamfer);
   box-shadow:
     inset 0 1px 0 rgba(201, 211, 221, 0.06),
@@ -707,7 +718,6 @@ html {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3xs);
-  margin: var(--space-xs) 0 0;
   padding: 0.25rem 0.625rem;
   background: var(--well);
   border: var(--hairline) solid var(--rule-on-plate);
@@ -755,6 +765,57 @@ html {
 .dedication-mode[data-mode="gated"]::before,
 .dedication-mode[data-mode="delegated"]::before {
   content: none;
+}
+
+/* --- The meta row + the dossier link (V4R2, owner callout) ------------------
+   Mode chip + documentation line share the cell's foot row: the row carries
+   the 44px floor (the DOSSIER link's tap target), so the two read as one
+   instrument line instead of two stacked blocks — on narrow cells they
+   wrap, and the tight-tier blocks below reclaim the vertical budget. */
+.dedication-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3xs) var(--space-sm);
+  margin: var(--space-3xs) 0 0;
+  min-height: 44px; /* tap-target floor (B3 convention) */
+}
+
+/* The dossier link — the plate-link grammar seated in the band: mono caps,
+   drawn hollow chrome diamond (the inert SOURCE convention — the destination
+   is documentation, not a live screen), crimson ignition on intent. */
+.dedication-dossier {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  min-height: 44px; /* tap-target floor (B3 convention) */
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-micro);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 5.32:1 on plate — the logged secondary pair */
+  text-decoration: none;
+}
+.dedication-dossier::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border: var(--hairline) solid var(--chrome-dim); /* 5.32:1 on plate */
+  transform: rotate(45deg);
+}
+.dedication-dossier:hover,
+.dedication-dossier:focus-visible {
+  color: var(--chrome); /* the inert link wakes under intent */
+  text-decoration: underline;
+  text-decoration-color: var(--crimson);
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 4px;
+  text-shadow: 0 0 10px rgba(229, 56, 59, 0.4); /* the ignition bloom   */
+}
+.dedication-dossier:active {
+  text-shadow: 0 0 10px rgba(229, 56, 59, 0.55);
 }
 
 /* --- Dedication band repacks (seams follow the new geometry) ------------- */
@@ -953,22 +1014,29 @@ html {
    6. FOOTER PLATE — the close (finished by task B4)
    --------------------------------------------------------------------------
    Full-bleed chamfered plate, bookending the counter band that opens the
-   page: the monument ends on engraved metal, not a bare link row. The two
-   attribution links carry the wall's link anatomy (mono caps, drawn
-   diamond, 44px tap target, focus-visible ring from the global rule);
-   the sign-off sits under a short centered rule like plaque furniture.
+   page: the monument ends on engraved metal, not a bare link row. V4R2
+   (owner callout) — like the roster band, the frame travels with the
+   PLATE: #footer no longer paints the rule color (at the stage era's
+   100svh that paint escaped as a full-stage gray square); the plate
+   carries its own two-layer chamfered rim. The two attribution links
+   carry the wall's link anatomy (mono caps, drawn diamond, 44px tap
+   target, focus-visible ring from the global rule); the sign-off sits
+   under a short centered rule like plaque furniture.
    ========================================================================== */
 
 #footer {
-  margin-top: var(--section-gap);
-  padding: var(--hairline);
-  background: var(--rule-strong);
-  clip-path: var(--corner-chamfer);
+  margin-top: var(--section-gap); /* the plate's stacked seat; staged:
+     section 14 swaps it for the stage frame */
 }
 
 .footer-plate {
   padding: var(--space-xl) var(--gutter) var(--space-lg);
-  background: var(--plate);
+  /* The carved frame (V4R2 — see the roster band): rule color under the
+     plate, split by the 1px transparent border. */
+  border: var(--hairline) solid transparent;
+  background:
+    linear-gradient(var(--plate), var(--plate)) padding-box,
+    linear-gradient(var(--rule-strong), var(--rule-strong)) border-box;
   clip-path: var(--corner-chamfer);
   box-shadow:
     inset 0 1px 0 rgba(201, 211, 221, 0.06),
@@ -2057,12 +2125,13 @@ html.staged .stage {
 }
 
 /* --- Stage-specific framing ------------------------------------------------
-   The old section rules carry ID specificity (#roster's frame padding, the
-   gutters, the phone-fold hero tiers); these ID+class resets only cancel the
-   stacked-document MARGINS so stages stack flush at exactly one viewport
-   each. #roster keeps its 1px chamfer-frame padding and takes its gutter as
-   margin (the frame technique needs the padding); #frieze and #wall keep the
-   class stage padding; #footer stays the full-bleed bookend it was. */
+   The old section rules carry ID specificity (the gutters, the phone-fold
+   hero tiers); these ID+class resets only cancel the stacked-document
+   MARGINS so stages stack flush at exactly one viewport each. V4R2: the
+   carved frames travel with the band/plate now, so #roster seats its band
+   by MARGIN alone (padding 0 — the .stage gutter padding would double the
+   inset) and #footer zeroes its padding to keep the plate FULL-BLEED, the
+   bookend it always was; #frieze and #wall keep the class stage padding. */
 
 #hero.stage,
 #roster.stage,
@@ -2073,7 +2142,12 @@ html.staged .stage {
 }
 
 #roster.stage {
-  margin: 0 var(--gutter); /* gutter as margin: the 1px frame keeps padding */
+  margin: 0 var(--gutter); /* the gutter as margin seats the framed band */
+  padding: 0;              /* the frame is the band's own rim (V4R2)      */
+}
+
+#footer.stage {
+  padding: 0; /* full-bleed: the plate's rim is its own (V4R2) */
 }
 
 #hero.stage #stats {
@@ -2309,18 +2383,30 @@ html.staged .stage-wall {
   #roster.stage .roster-band .dedication:nth-child(n + 3) {
     border-top: var(--hairline) solid var(--rule-soft);
   }
+  /* V4R2: the dossier row joins the cell's foot, so the whole phone band
+     re-densifies to hold the one-viewport floor (measured 700px on the
+     320x568 stage with the stacked rows; ~550 after this block). Same
+     anatomy, denser packing — the 44px dossier target and every text
+     size floor hold; nothing is cut. */
   #roster.stage .dedication {
-    padding: var(--space-xs) var(--space-2xs);
+    padding: var(--space-2xs) var(--space-2xs) 0; /* the 44px dossier row's own centered box is the cell's bottom seat */
   }
   #roster.stage .dedication-name {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
+    line-height: 1.1;
   }
   #roster.stage .dedication-role {
-    font-size: 0.8125rem;
-    line-height: 1.35;
+    margin-top: var(--space-3xs);
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+  #roster.stage .dedication-meta {
+    margin-top: 0;
+    row-gap: 2px;
   }
   #roster.stage .dedication-mode {
     font-size: 0.625rem;
+    padding: 0.125rem 0.5rem;
   }
 }
 
@@ -2487,13 +2573,41 @@ html.staged .stage-wall {
   }
 }
 
+/* --- The 320-tall landscape step (the V4R2 note of record): the roster's
+   own height-keyed compaction ----------------------------------------------
+   The dossier row (V4R2) grows the wrapped meta row on short-landscape
+   phones: at 568x320 the band stood 334.1px on the 320px viewport (+14.08
+   — the one W3 ladder rung the V4R2 verifier flagged; 240 before the
+   dossier). The mass is NOT the 44px dossier floor (that holds) — it is
+   the mode chip's UA paragraph margins riding the wrap: the chip is a
+   <p>, so at this tier's 9px voice it carries 9px above and below itself,
+   18px per wrapped cell, +94px across the band. The name and role have
+   carried explicit margins since B4; this tier zeroes the chip's and
+   seats the meta row's wrapped lines flush — same anatomy, denser
+   packing, the 44px dossier target, every text floor, and every contrast
+   pair hold. Keyed to height <= 320px and width >= 480px (the W3 520h
+   roster tier's own range, one step lower) so the 844x390 / 740x360
+   rungs and every portrait course never see it; sources AFTER the
+   narrow+short block so the same-specificity cascade resolves here. */
+@media (max-height: 320px) and (min-width: 480px) {
+  #roster.stage .dedication-mode {
+    margin: 0; /* the instrument line is not a paragraph */
+  }
+  #roster.stage .dedication-meta {
+    row-gap: 0; /* the wrapped chip seats flush on the 44px dossier row */
+  }
+}
+
 /* ==========================================================================
    14b. THE HUD SPINE — the orientation system (js/stages.js builds the nav)
    --------------------------------------------------------------------------
    A fixed crimson spine at the right edge: one tick per stage, the active
-   tick LIT + ELONGATED with its mono stage label beside it (HERO / WALL 1..N
-   / ROSTER / FRIEZE / FOOTER — label shown at >= 1180px only, always inside
-   the reserved --spine-band gutter; see THE SPINE CLEARANCE below). The
+   tick LIT + ELONGATED with its mono stage label beside it (HERO /
+   PROJECTS <page>/<total> / ROSTER / FRIEZE / FOOTER — label shown at
+   >= 1180px only, always inside the reserved --spine-band gutter; see THE
+   SPINE CLEARANCE below). The paged labels seat on two chip lines
+   ("PROJECTS" / "1 / 3") so the chip never widens past the reserved band.
+   The
    ticks are real buttons — keyboard-focusable,
    aria-labeled "Go to <stage>", 44px targets — scrolling the console to the
    stage on activation. The spine is the console's instrument, not decoration:
@@ -2603,15 +2717,17 @@ html.staged .stage-wall {
       inset, so the content column can PHYSICALLY never reach the chip:
       --spine-band = the 44px tick box + the seat gap + the chip + left
       breathing. Chip arithmetic (measured, Martian Mono 700 at 11px, 0.14em
-      tracking, 8px side padding): the longest live label is six characters
-      (ROSTER / FRIEZE / FOOTER / WALL N) at 71.5px; --spine-chip reserves
-      81px — one character beyond the longest possible label for a long
-      time to come (a 7-char "WALL 10" needs 37+ builds at the 2x2 tier).
-      Remeasure --spine-chip if labels ever grow past seven chars.
-      #roster takes its inset as MARGIN (the chamfer-frame technique keeps
-      its padding); #hero needs an ID-level rule (the stacked-era #hero
-      sets padding at ID specificity); #footer takes the margin route so its
-      bookend frame stays 1px and the rail sits over open ground. The band
+      tracking, 8px side padding): the longest live chip LINE is eight
+      characters ("PROJECTS" — the paged wall labels seat two-line, so the
+      page count never widens the chip) at ~90px; --spine-chip reserves
+      100px — one character beyond the longest line. A two-digit page
+      count ("10 / 12") still fits the second line's headroom.
+      Remeasure --spine-chip if a chip line ever grows past eight chars.
+      #roster takes its inset as MARGIN (its carved frame travels with the
+      band, not the stage); #hero needs an ID-level rule (the stacked-era
+      #hero sets padding at ID specificity); #footer takes the margin route
+      so its full-bleed plate reaches the rail's edge and the label floats
+      over open ground. The band
       replaces the page gutter where it exceeds it (max()) — the label
       floats in open ground, right-anchored to its tick, at every stage.
 
@@ -2637,8 +2753,8 @@ html.staged .stage-wall {
    gated on html.staged or scoped to the spine the stages script builds. */
 
 html.staged {
-  --spine-chip: 81px; /* measured worst 6-char chip 71.5px + one char headroom */
-  --spine-band: calc(44px + 2 * var(--space-2xs) + var(--spine-chip)); /* 141px */
+  --spine-chip: 100px; /* measured 8-char line "PROJECTS" ~90px + one char headroom */
+  --spine-band: calc(44px + 2 * var(--space-2xs) + var(--spine-chip)); /* 160px */
 }
 
 @media (min-width: 1180px) {
@@ -2686,12 +2802,14 @@ html.staged {
    js/render.js's renderFooter now preserves foreign mount children across
    re-renders, retiring the original reason for the outside placement. It
    takes the stage's centered flow (the flex column centers plate + anchor
-   as one group); its own inline styles carry everything else. ONE W1 rule
-   below: the stage's chamfer frame fills #footer with the rule color, and
-   dim-chrome lettering directly on that fill measures ~3.1:1 — under the
-   body floor. On the plate field (the same metal the footer plate above
-   it wears) the anchor keeps the logged 5.32:1 chrome-dim/plate pair and
-   the footer reads as one continuous monument block. Markup untouched. */
+   as one group); its own inline styles carry everything else. ONE rule
+   below: the anchor wears the plate field itself (the same metal the
+   footer plate above it wears) with a hairline seat rule — originally
+   because the stacked-era #footer filled the stage with the rule color
+   (dim-chrome on that fill measured ~3.1:1); V4R2 moved the frame onto
+   the plate, and the field STAYS so the anchor keeps the logged 5.32:1
+   chrome-dim/plate pair and the footer reads as one continuous monument
+   block. Markup untouched. */
 .archive-anchor {
   background: var(--plate);
   border-top: var(--hairline) solid var(--rule-on-plate);

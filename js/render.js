@@ -76,42 +76,51 @@
   /* The six-coordinator dedication band. `mode` values are the launch mode
      indicators: gated / delegated / autonomous / deadline / redesign /
      finishing (launch-content.md roster facts). `role` lines mirror
-     data/timeline.js (same source: launch-content.md). */
+     data/timeline.js (same source: launch-content.md). `doc` is the
+     dedication's line to its archive record — skills.html's console
+     selects the entry on load from the hash (V4R2 owner callout: the
+     further documentation dive). */
   var ROSTER = [
     {
       id: "ultron",
       name: "Ultron",
       mode: "GATED",
+      doc: "#skill-ultron",
       role: "The original gated multi-phase coordinator — the user approves each phase and task."
     },
     {
       id: "ultron-swarm",
       name: "Ultron Swarm",
       mode: "DELEGATED",
+      doc: "#skill-ultron-swarm",
       role: "The delegated line — subagents do the task work while the user still gates every phase."
     },
     {
       id: "ultron-supreme",
       name: "Ultron Supreme",
       mode: "AUTONOMOUS",
+      doc: "#skill-ultron-supreme",
       role: "Fully autonomous — auto-approves its own work and halts only on the halt list."
     },
     {
       id: "ultron-overlord",
       name: "Ultron Overlord",
       mode: "DEADLINE",
+      doc: "#skill-ultron-overlord",
       role: "Autonomy at deadline speed — a 120-minute idea-to-production target."
     },
     {
       id: "ultron-redesign",
       name: "Ultron Redesign",
       mode: "REDESIGN",
+      doc: "#skill-ultron-redesign",
       role: "Replaces an existing product's visual world via locked prototyping rounds."
     },
     {
       id: "ultron-impeccable",
       name: "Ultron Impeccable",
       mode: "FINISHING",
+      doc: "#skill-ultron-impeccable",
       role: "The finishing pass — document refresh, critique, and a refinement checklist."
     }
   ];
@@ -666,7 +675,14 @@
     }, 150);
   });
 
-  /* #roster — the six dedications (constant-driven; see header). */
+  /* #roster — the six dedications (constant-driven; see header). V4R2: each
+     dedication carries its DOSSIER line — a real same-origin <a> to its
+     archive record (skills.html#skill-<id>; the console there selects the
+     record on load). The mode chip + the dossier link share one meta row
+     (44px floor — the link's tap target; they wrap on narrow cells), so
+     the band's height budget survives the phone stages. The dedication
+     STAYS a card, not a whole-card link: role text stays selectable and
+     future links keep their own seats. */
   function renderRoster(mountNode) {
     mountNode.textContent = "";
     mountNode.appendChild(sectionHeading("The dedications"));
@@ -677,9 +693,15 @@
       item.setAttribute("data-coordinator", member.id);
       item.appendChild(el("h3", "dedication-name", member.name)); /* D1: h3 */
       item.appendChild(el("p", "dedication-role", member.role));
+      var meta = el("div", "dedication-meta");
       var mode = el("p", "dedication-mode", member.mode);
       mode.setAttribute("data-mode", member.mode.toLowerCase());
-      item.appendChild(mode);
+      meta.appendChild(mode);
+      var doc = el("a", "dedication-dossier", "DOSSIER");
+      doc.href = "skills.html" + member.doc;
+      doc.setAttribute("aria-label", member.name + " — full dossier");
+      meta.appendChild(doc);
+      item.appendChild(meta);
       band.appendChild(item);
     }
     mountNode.appendChild(band);
