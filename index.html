@@ -139,6 +139,17 @@
        reachable only by a deliberate extra gesture; measured: anchorTop 900
        of 900 at the FOOTER rest position, visible only at max scroll). -->
   <footer id="footer" class="stage stage-footer">
+      <!-- S3 (V3 THE ARCHIVE, attempt 2): the monument's one carved line to the
+         documentation wing (skills.html). Originally a sibling AFTER the
+         footer plate (a stacked-document placement); V4 W1 moved the element
+         — byte-identical, classes/styles/text untouched — INSIDE the footer
+         stage, and js/render.js's renderFooter now PRESERVES foreign children
+         across re-renders (the original reason for the outside placement:
+         "render.js clears that mount on load"). Relocation flagged for the
+         coordinator in the W1 production-log entry. Self-contained per the
+         S3 file-ownership rule: inline styles over tokens.css variables only
+         (no second stylesheet link — this anchor is exactly one element). -->
+    <a class="archive-anchor" href="skills.html" style="display:flex;justify-content:center;align-items:center;min-height:44px;margin:0;padding:var(--space-md) var(--gutter);font-family:var(--font-mono);font-weight:var(--weight-bold);font-size:var(--size-readout);line-height:var(--leading-readout);letter-spacing:var(--track-caps-wide);text-transform:uppercase;text-align:center;color:var(--chrome-dim);text-decoration:underline;text-decoration-color:var(--crimson);text-decoration-thickness:var(--hairline);text-underline-offset:4px;">The archive — the skill family, documented</a>
   </footer>
 </body>
 </html>

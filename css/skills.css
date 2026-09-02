@@ -1,0 +1,1601 @@
+/* ==========================================================================
+   The Archive — skills.html's entire stylesheet (V3 THE ARCHIVE, task S3
+   attempt 2: THE ARCHIVE CONSOLE)
+   --------------------------------------------------------------------------
+   The monument's documentation world: css/tokens.css linked BEFORE this
+   file, read-only — tokens consumed, never edited. css/styles.css is
+   deliberately NOT linked: this sheet owns the archive's whole surface,
+   re-declaring the few global primitives the page needs that live in
+   styles.css on the front page (focus ring, scrollbars, skip link,
+   noscript band, empty state) so the parallel amplification pass can churn
+   styles.css without reaching in here.
+
+   TWO MODES, ONE SWITCH:
+     - STACKED (default — no console): the complete documentation
+       document as one continuous carved wall (the no-JS / script-error /
+       console-file-absent degradation, and the state the S2 renderer
+       paints before js/skills-console.js runs). Sections, grids, the
+       pipeline rail, the heroes hall: attempt 1's layout, kept as the
+       honest fallback. Scrolling is fine here.
+     - CONSOLE (html.console-armed — added ONLY by js/skills-console.js):
+       the click-through archive. Header band + persistent index rail +
+       one detail panel; the page never scrolls (the shell is locked to
+       the viewport; the rail and the panel carry their own internal
+       scroll when content demands it). Every console rule is prefixed
+       with html.console-armed so the switch is total: no class, no
+       console, no orphan styles.
+
+   SURFACE PLAN (console mode, in order):
+     1. #archive-head   — the wing's compact lintel band: back link,
+                          THE ARCHIVE wordmark + category line, the
+                          27-records census readout, on one hairline band.
+     2. the rail        — html.console-armed #archive-main's first child:
+                          three group labels (the S2 section h2s,
+                          re-seated) + 27 rail tabs over the recessed
+                          well field; the pipeline tabs carry mono
+                          ordinals, the family tabs carry the graded
+                          autonomy diamonds, the hero tabs the hollow
+                          chrome marker.
+     3. the stage       — the second child: one detail panel at a time,
+                          each the promoted entry itself on a plate with
+                          the spec-sheet field rows and (heroes) the
+                          carved Garamond signature pull-quote.
+     4. #archive-footer — a slim one-line plate band.
+   Mobile (<1024): the rail becomes the two-tier control — three group
+   buttons (44px taps) + one horizontally scrollable chip row of the
+   active group's entries — with the panel beneath; the shell is locked
+   there too, so all scrolling is internal.
+
+   NEW TOKENS: only scale/spacing values this surface adds, in the tokens'
+   own naming grammar; every color/rule/face/motion primitive is consumed
+   from tokens.css verbatim.
+
+   CONTRAST (WCAG arithmetic against the tokens' pinned values — the
+   logged matrix plus the console's own composites, each computed from
+   the blend and pixel-corroborated by the S3 harness at 1440 and 390):
+     - chrome on ground 12.83:1; on plate 10.43:1; on well 11.96:1
+     - chrome-dim on ground 6.55:1; on plate 5.32:1; on well 6.11:1
+     - crimson on ground 4.60:1; on plate 3.74:1; on well 4.28:1 (non-text)
+     - rail tab UNSELECTED: chrome-dim on well 6.11:1 (body floor 4.5)
+     - rail tab HOVER: chrome on well 11.96:1
+     - rail tab SELECTED: chrome over the crimson-tinted well (0.16 alpha
+       crimson over #12161c composites #342021-class) ~9.6:1; bold, plus
+       the solid-crimson seat bar (4.28:1 on well, non-text)
+     - group label: chrome on well 11.96:1 (Cinzel >= large)
+     - pipeline ordinal: chrome-dim on well 6.11:1 (selected: chrome)
+     - panel text: chrome / chrome-dim on plate 10.43 / 5.32:1
+     - empty rail note: chrome-dim on well 6.11:1
+     - group buttons: chrome-dim on well 6.11:1 unpressed; chrome on the
+       crimson tint ~9.6:1 pressed
+     - noscript tinted band (chrome over the 0.12 crimson plate wash)
+       ~9.4:1 — the V3-B logged recompute, same recipe
+   Non-text markers: graded chip diamonds on well 4.28:1 (solid) /
+   6.11:1 (hollow chrome-dim), the selected tab's crimson seat bar on
+   well 4.28:1, the crimson focus ring on well 4.28:1 / plate 3.74:1 /
+   ground 4.60:1 — all >= 3:1 (WCAG 1.4.11). The signature's carved rule
+   and the rail's group hairlines are decorative framing under the
+   logged B4 rule-class precedent. Disabled group buttons keep
+   chrome-dim on well (6.11:1) — visible but honestly inert (WCAG
+   1.4.3's inactive-component exception; the color still clears AA).
+
+   TARGET SIZES: the mobile group buttons and chip row hold the house
+   44px tap floor. The desktop rail's compact rows sit at 24px minimum —
+   the WCAG 2.5.8 AA floor for pointer targets — because 27 entries plus
+   three labels must stand in one 1440x900 viewport without the PAGE
+   ever scrolling (the owner's redirect); the row is a pointer/keyboard
+   index, not a touch surface (the touch tiers get the 44px chip row).
+
+   MOTION: quiet and CSS-only. Intent transitions on paint properties;
+   one lintel rise on load (both modes, gated by no-preference); stacked
+   per-entry scroll reveals double-gated (@supports animation-timeline
+   AND no-preference) so they never run where scroll-driven animation is
+   unsupported; the console's one gesture is a 120ms opacity-only fade
+   on the incoming panel, likewise declared only outside
+   prefers-reduced-motion. Under prefers-reduced-motion every animation
+   and transition is killed, belt and braces, and all content renders
+   fully visible with zero offset.
+   ========================================================================== */
+
+/* --- Local additions to the token layer (same grammar; see header) -------- */
+:root {
+  /* The wing's wordmark — stacked lintel grade. */
+  --size-wordmark-archive: clamp(1.875rem, 1.5rem + 1.9vw, 3.25rem);
+  /* Coordinator / stage names — the documentation step of --size-title. */
+  --size-entry: clamp(1.125rem, 1rem + 0.55vw, 1.5rem);
+  /* Hero names — the featured floor runs one step larger. */
+  --size-entry-featured: clamp(1.375rem, 1.1rem + 1.2vw, 2rem);
+  /* The signature pull-quote (italic Garamond). */
+  --size-pull: clamp(1.1875rem, 1.05rem + 0.6vw, 1.5rem);
+  /* Between the wing's stacked blocks — one step calmer than the
+     monument's --section-gap (a reading room, not a parade ground). */
+  --archive-section-gap: clamp(3.5rem, 6vw + 1.5rem, 6.5rem);
+  /* The console's crimson seat tint — the selected tab's lit wash over
+     the well (the roster lit-chip grammar, archive-voiced). */
+  --archive-seat: rgba(229, 56, 59, 0.16);
+}
+
+/* --- Global primitives this page owns (styles.css equivalents, mirrored;
+       see header — the archive does not link styles.css) -------------------- */
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scrollbar-color: var(--plate) var(--ground);
+}
+
+/* Keyboard focus: the one crimson ring (crimson on ground 4.60:1, on plate
+   3.74:1, on well 4.28:1 — all above the 3:1 non-text minimum; the front
+   page's rule). */
+:focus-visible {
+  outline: 2px solid var(--crimson);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   0. THE SKIP LINK + THE NOSCRIPT BAND + THE EMPTY STATE (C1/D1 patterns,
+   mirrored from styles.css sections 8/9 so the archive degrades in the
+   same engraved language)
+   ========================================================================== */
+
+.skip-link {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--gutter);
+  z-index: 4; /* outranks every wash and wash-adjacent layer when focused */
+  padding: var(--space-xs) var(--space-md);
+  background: var(--ground);
+  border: var(--hairline) solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome); /* 12.83:1 on ground — logged B1 */
+  text-decoration: none;
+}
+.skip-link:not(:focus) {
+  /* The visually-hidden pattern until focused (the D1 rule). */
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The skip link's landing: #archive-main takes programmatic focus via
+   tabindex="-1" (skills.html); the outline is suppressed — it is a target,
+   not a tab stop, and the next Tab rings the back link (or, in console
+   mode, walks the rail). */
+#archive-main:focus {
+  outline: none;
+}
+
+/* The machine speaks when it cannot run: the C1 band, wearing the counter
+   band's dark-crimson plate variant (the V3-B recipe: chrome lettering on
+   the tinted plate reads ~9.4:1; crimson-alpha closing rule). Sentence-case
+   readout type — a passage this long in caps reads as shouting (R3). */
+.noscript-notice {
+  margin: 0;
+  padding: var(--space-sm) var(--gutter);
+  background-color: var(--plate);
+  background-image:
+    linear-gradient(rgba(229, 56, 59, 0.12), rgba(229, 56, 59, 0.12));
+  border-bottom: var(--hairline) solid rgba(229, 56, 59, 0.42);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-readout);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-readout);
+  text-align: center;
+  color: var(--chrome); /* ~9.4:1 on the tinted plate — V3-B recompute */
+  overflow-wrap: break-word;
+}
+
+/* A quiet plate for an empty mount (S2's degraded element): hairline rule +
+   raised bevel (the plate convention), sentence-case readout type in the
+   dim secondary voice, held to the measure. The marked hollow-crimson
+   diamond seats above the line — the machine reporting a bounded state.
+   In console mode an empty group's note rides the rail (compact variant
+   in section 7). */
+.empty-state {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: var(--space-md);
+  background: var(--plate);
+  border: var(--hairline) solid var(--rule-soft);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-readout);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-readout);
+  text-align: center;
+  color: var(--chrome-dim); /* 5.32:1 on plate — logged B1 */
+  overflow-wrap: break-word;
+}
+
+.empty-state::before,
+.noscript-notice::before {
+  content: "";
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin: 0 auto var(--space-2xs);
+  border: var(--hairline) solid var(--crimson); /* 3.74:1 on plate (non-text) */
+  transform: rotate(45deg);
+}
+
+/* ==========================================================================
+   1. THE LINTEL — #archive-head, the wing's banner
+   --------------------------------------------------------------------------
+   Stacked mode: attempt 1's centered lintel — a static faint crimson breath
+   at the band's foot, one chrome hairline closing it. Console mode (section
+   7) re-seats the same children into the compact one-band header.
+   ========================================================================== */
+
+#archive-head {
+  padding: var(--space-lg) var(--gutter) var(--space-md);
+  text-align: center;
+  background: radial-gradient(
+    92% 70% at 50% 100%,
+    rgba(229, 56, 59, 0.07),
+    rgba(229, 56, 59, 0.03) 46%,
+    rgba(229, 56, 59, 0) 72%
+  );
+  border-bottom: var(--hairline) solid var(--rule-soft);
+}
+
+/* The way back: the front page's link anatomy (mono caps, drawn hollow
+   diamond, 44px target) in the inert grade — the link returns to the
+   monument, it does not act, so it carries no crimson at rest. The
+   underline is painted in transparent crimson so text-decoration-color
+   (paint-only) can draw it in on intent. */
+.archive-return {
+  margin: 0;
+}
+
+.archive-return-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px; /* tap-target floor (the B3 convention) */
+  gap: var(--space-3xs);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-readout);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* >= 6.26:1 over the wash's strongest seat */
+  text-decoration-line: underline;
+  text-decoration-color: rgba(229, 56, 59, 0);
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease-out, color 0.2s ease-out;
+}
+.archive-return-link::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border: var(--hairline) solid var(--chrome-dim); /* 6.55:1 on ground */
+  transform: rotate(45deg);
+}
+.archive-return-link:hover,
+.archive-return-link:focus-visible {
+  color: var(--chrome); /* the inert link wakes under intent */
+  text-decoration-color: var(--crimson); /* 4.60:1 on ground (non-text) */
+}
+
+.archive-wordmark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-wordmark-archive);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome); /* >= 12.2:1 over the wash — large text, floor 3:1 */
+  text-wrap: balance;
+  text-shadow: var(--engrave-text), 0 0 24px rgba(201, 211, 221, 0.1);
+}
+
+/* The one plain-language line — the hero-category grammar, measure-capped
+   so it sets as a balanced two-line group (V2R3's finding). */
+.archive-category {
+  margin: var(--space-sm) auto 0;
+  max-width: 55ch;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-readout);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* >= 6.26:1 over the wash — floor 4.5:1 */
+  text-wrap: balance;
+}
+
+/* The census readout — console mode's right-column line ("27 records").
+   Stacked mode hides it: the category line already carries the counts,
+   and the lintel stays quiet. */
+.archive-census {
+  display: none;
+}
+
+/* ==========================================================================
+   2. THE SHARED DOCUMENTATION GRAMMAR — section headings, labeled fields
+   --------------------------------------------------------------------------
+   The S2 renderer draws h2.section-heading as each mount's first child and
+   MEANS it visible on this surface (the render.js visually-hidden class is
+   deliberately not baked in). Stacked mode: the wing's wall-plate
+   inscription (Cinzel caps seated on a hairline running to the margin,
+   one hollow chrome-dim diamond — sections do not act, so no crimson).
+   Console mode re-seats the SAME h2s as the rail's group labels
+   (section 7 owns that re-seating; this block is the stacked base).
+   ========================================================================== */
+
+#archive-main > section {
+  margin: var(--archive-section-gap) var(--gutter) 0;
+}
+#archive-main > section:first-child {
+  margin-top: var(--space-xl); /* the first hall sits closer to its lintel */
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: 0 0 var(--space-lg);
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-section);
+  line-height: var(--leading-title);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--chrome); /* 12.83:1 on ground — logged B1 */
+  text-shadow: var(--engrave-text);
+}
+.section-heading::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border: var(--hairline) solid var(--chrome-dim); /* 6.55:1 on ground */
+  transform: rotate(45deg);
+}
+.section-heading::after {
+  content: "";
+  flex: 1;
+  border-top: var(--hairline) solid var(--rule-soft);
+}
+
+/* Stacked deep links (#skill-<id> / #hero-<id>) land clear of the lintel.
+   (Console mode owns the hash — nothing scrolls to anchors there.) */
+html:not(.console-armed) #archive-main > section,
+html:not(.console-armed) #archive-main .family-member,
+html:not(.console-armed) #archive-main .pipeline-stage,
+html:not(.console-armed) #archive-main .hero {
+  scroll-margin-top: var(--space-md);
+}
+
+/* One labeled field block (div.field.field-how|gates|when|what|calls >
+   h4.field-heading + p.field-text — the S2 anatomy): the spec sheet's row
+   line — a hairline above, a mono micro caps label, Garamond text under.
+   Shared by BOTH modes (the panel is the promoted entry, fields intact).
+   The GATES field alone carries a marker: the machine's halt point, drawn
+   in the marked grade (hollow crimson — the bounded-state diamond, 3.74:1
+   on plate / 4.28:1 on well, non-text). */
+.field {
+  min-width: 0; /* long mono tokens may never widen a track */
+  padding-top: var(--space-xs);
+  border-top: var(--hairline) solid var(--rule-soft);
+}
+
+.field-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  margin: 0 0 var(--space-2xs);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-micro);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 5.32:1 on plate / 6.55:1 on ground / 6.11:1 on well */
+}
+
+.field-gates .field-heading::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border: var(--hairline) solid var(--crimson); /* the halt marker */
+  transform: rotate(45deg);
+}
+
+.field-text {
+  margin: 0;
+  color: var(--chrome-dim); /* 5.32:1 on plate / 6.55:1 on ground */
+  overflow-wrap: break-word; /* the data's long slugs never overflow a track */
+  text-wrap: pretty;
+}
+
+/* The graded mode chip — the roster band's own system, verbatim grades:
+   crimson is the ACTIVE accent, spent where the machine acts. Shared by
+   the stacked plates and the console panel.
+     lit    autonomous / deadline-driven — solid crimson diamond, strong
+            crimson frame, full-chrome bold text: the machine acts alone.
+     marked mode-dependent — hollow crimson diamond, faint crimson frame,
+            chrome text: the machine runs a conditional pass.
+     dim    gated / delegated — no diamond, plain well chip, dim chrome:
+            the human holds the gate.
+   Chip FRAMES in alpha crimson are decorative tint; the mode word + the
+   diamond carry the state (solid crimson on well 4.28:1, non-text). */
+.family-mode {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-3xs);
+  margin: 0;
+  padding: 0.25rem 0.625rem;
+  background: var(--well);
+  border: var(--hairline) solid var(--rule-on-plate);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-tag);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 6.11:1 on well — logged B2 */
+  overflow-wrap: anywhere; /* long labels never burst the chip */
+}
+.family-mode::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: none;
+  transform: rotate(45deg);
+}
+
+/* marked — the machine runs a conditional pass (mode-dependent) */
+.family-mode[data-mode="mode-dependent"] {
+  border-color: rgba(229, 56, 59, 0.35);
+  color: var(--chrome); /* 11.96:1 on well — logged B2 */
+}
+.family-mode[data-mode="mode-dependent"]::before {
+  border: var(--hairline) solid var(--crimson); /* 4.28:1 on well */
+}
+
+/* lit — the machine acts alone (autonomous / deadline-driven) */
+.family-mode[data-mode="autonomous"],
+.family-mode[data-mode="deadline-driven"] {
+  border-color: rgba(229, 56, 59, 0.6);
+  color: var(--chrome);
+  font-weight: var(--weight-bold);
+}
+.family-mode[data-mode="autonomous"]::before,
+.family-mode[data-mode="deadline-driven"]::before {
+  background: var(--crimson); /* 4.28:1 on well (non-text) */
+}
+
+/* dim — the human holds the gate (gated / delegated): the plain chip
+   above with the marker removed. */
+.family-mode[data-mode="gated"]::before,
+.family-mode[data-mode="delegated"]::before {
+  content: none;
+}
+
+/* ==========================================================================
+   3. THE STACKED HALLS — the complete-document degradation
+   --------------------------------------------------------------------------
+   Attempt 1's layout, kept for the no-console states: the coordinators as
+   spec plates on a shared well field, the pipeline as one numbered lineage
+   down a hairline rail, the heroes as the featured floor. Every entry
+   selector is gated html:not(.console-armed) — the ID-scoped #archive-main
+   prefix (specificity 1,1,0) would otherwise outrank the console's
+   class-scoped panel rules (0,4,1) and reach INTO the stage, which is a
+   descendant of #archive-main: panels would wear stacked padding and,
+   critically, the [hidden] guard's display:none would lose to the stacked
+   display:flex. The gate makes the two modes provably disjoint.
+   ========================================================================== */
+
+.family-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: var(--space-3xs); /* mounting joints between plates */
+  padding: var(--space-3xs); /* joint frame around the field */
+  background: var(--well); /* the shared backing field */
+}
+
+html:not(.console-armed) #archive-main .family-member {
+  container: family / inline-size; /* names size against the plate */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: var(--space-md);
+  background: var(--plate);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px var(--rule-soft);
+  transition: box-shadow 0.3s var(--ease-ignite);
+}
+
+/* Presence raises the plate's rule to crimson and lifts a soft glow —
+   the wall's intent grammar at the calmer soft token (paint-only). */
+html:not(.console-armed) #archive-main .family-member:hover,
+html:not(.console-armed) #archive-main .family-member:focus-within,
+html:not(.console-armed) #archive-main .family-member:target {
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(229, 56, 59, 0.5),
+    var(--glow-crimson-soft);
+}
+
+html:not(.console-armed) #archive-main .family-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  /* cqi against the plate (the B3 wall fix, documentation-sized): the
+     ceiling holds the longest name ("ULTRON IMPECCABLE") on one line in
+     a wide track; the floor keeps it legible in the narrowest. Fallback
+     (no container-query support): the vw clamp. */
+  font-size: var(--size-entry);
+  font-size: clamp(1.125rem, 6cqi + 0.3rem, 1.625rem);
+  line-height: var(--leading-title);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--chrome); /* 10.43:1 on plate — logged B1 */
+  text-wrap: balance;
+  text-shadow: var(--engrave-text);
+}
+
+/* The identity line — the documentation standfirst voice: italic
+   Garamond in the dim secondary register. */
+html:not(.console-armed) #archive-main .family-essence {
+  margin: 0;
+  font-style: italic;
+  color: var(--chrome-dim); /* 5.32:1 on plate — logged B1 */
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+/* --- The lineage deck: eight stages down one rail -------------------------
+   The frieze's stele grammar on the open ground, documentation-voiced:
+   mono ordinals (01–08, drawn by CSS counter — the ol's own order made
+   visible), a plain chrome hairline rail, each stage held to the body
+   measure. Scoped under .pipeline-line so the console's promoted stage
+   panels never draw the rail. */
+.pipeline-line {
+  counter-reset: stage;
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 var(--space-lg);
+  list-style: none;
+  display: grid;
+  row-gap: var(--space-lg);
+}
+
+html:not(.console-armed) #archive-main .pipeline-stage {
+  counter-increment: stage;
+  position: relative;
+  min-width: 0;
+  max-width: var(--measure); /* the reading floor: 65–75ch */
+}
+
+/* The ordinal node: a two-digit mono numeral seated on the rail, the
+   ground fill behind it masking the rail so the number reads carved in. */
+html:not(.console-armed) #archive-main .pipeline-stage::before {
+  content: counter(stage, decimal-leading-zero);
+  position: absolute;
+  left: calc(-1 * var(--space-lg) - 0.375rem);
+  top: 0;
+  padding: 0 var(--space-3xs);
+  background: var(--ground);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-micro);
+  line-height: var(--leading-title);
+  letter-spacing: var(--track-readout);
+  color: var(--chrome-dim); /* 6.55:1 on ground — logged B1 */
+}
+
+/* The rail: one chrome hairline per course; the last stage ends the
+   lineage. */
+html:not(.console-armed) #archive-main .pipeline-stage::after {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--space-lg) + 5px);
+  top: 0;
+  bottom: calc(-1 * var(--space-lg));
+  border-left: var(--hairline) solid var(--rule-strong);
+}
+html:not(.console-armed) #archive-main .pipeline-stage:last-child::after {
+  content: none;
+}
+
+html:not(.console-armed) #archive-main .pipeline-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-entry);
+  line-height: var(--leading-title);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--chrome); /* 12.83:1 on ground — logged B1 */
+  text-wrap: balance;
+  text-shadow: var(--engrave-text);
+}
+
+/* The stage's role — the standfirst voice (italic Garamond, dim). */
+html:not(.console-armed) #archive-main .pipeline-role {
+  margin: 0 0 var(--space-xs);
+  font-style: italic;
+  color: var(--chrome-dim); /* 6.55:1 on ground — logged B1 */
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+/* --- The heroes hall: the featured floor ----------------------------------
+   The wing's featured surface: wider tracks, more air, names one size
+   larger, the static crimson ember pooled at each plate's base, and the
+   signature line closed as a carved-rule Garamond pull-quote (shared
+   with the console panel — the hero anatomy is mode-independent). */
+.heroes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
+  gap: var(--space-3xs);
+  padding: var(--space-3xs);
+  background: var(--well); /* the shared backing field */
+}
+
+html:not(.console-armed) #archive-main .hero {
+  container: heroplate / inline-size;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: var(--space-lg) var(--space-md);
+  background: var(--plate);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px var(--rule-soft),
+    inset 0 -20px 30px -22px rgba(229, 56, 59, 0.4); /* the base ember */
+  transition: box-shadow 0.3s var(--ease-ignite);
+}
+
+html:not(.console-armed) #archive-main .hero:hover,
+html:not(.console-armed) #archive-main .hero:focus-within,
+html:not(.console-armed) #archive-main .hero:target {
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(229, 56, 59, 0.5),
+    inset 0 -28px 44px -26px rgba(229, 56, 59, 0.55),
+    var(--glow-crimson-soft);
+}
+
+/* Entry names + hero anatomy are shared between the stacked plates and
+   the console panels (both are .hero/.family-member articles); the
+   container-query sizing only bites where a container exists (the
+   grids). The console panel sizes are set in section 7. */
+.hero-name,
+.family-name,
+.pipeline-name {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--chrome); /* 10.43:1 on plate — logged B1 */
+  text-wrap: balance;
+  text-shadow: var(--engrave-text);
+}
+
+.hero-name {
+  margin: 0;
+  font-size: var(--size-entry-featured);
+  font-size: clamp(1.3125rem, 7cqi + 0.35rem, 2rem);
+  line-height: var(--leading-title);
+}
+.family-name {
+  margin: 0;
+  font-size: var(--size-entry);
+  font-size: clamp(1.125rem, 6cqi + 0.3rem, 1.625rem);
+  line-height: var(--leading-title);
+}
+.pipeline-name {
+  margin: 0;
+  font-size: var(--size-entry);
+  line-height: var(--leading-title);
+  color: var(--chrome); /* ground-seat in the stacked deck */
+}
+
+/* The lens — the concern the hero carries: the featured standfirst, set
+   in italic Garamond at FULL chrome (the hall's one register up from the
+   family wing's dim essences). */
+.hero-lens {
+  margin: 0;
+  font-style: italic;
+  color: var(--chrome); /* 10.43:1 on plate — logged B1 */
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+/* The recorded absence — retro's null field: the quiet passage in the
+   documentation voice, distinguished from a real invocation only by its
+   italic (the standfirst register) and nothing louder. */
+.hero-calls-none {
+  font-style: italic;
+}
+
+/* The verified quote — the pull-quote treatment: a carved crimson rule
+   (alpha of the pinned accent — decorative framing under the logged
+   rule-class precedent), the quote in italic EB Garamond at pull size in
+   full chrome, pinned to the plate's foot (margin-top: auto) so a row of
+   plates — or the console panel — shares one signature datum. */
+.hero-signature {
+  margin: var(--space-xs) 0 0;
+  margin-top: auto;
+  padding-top: var(--space-sm);
+  border-top: var(--hairline) solid rgba(229, 56, 59, 0.5);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: var(--weight-body);
+  font-size: var(--size-pull);
+  line-height: var(--leading-title);
+  color: var(--chrome); /* 10.43:1 on plate — logged B1 */
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   4. THE FOOTER PLATE — #archive-footer: the wing's close (stacked grade)
+   --------------------------------------------------------------------------
+   The front page's full-bleed chamfered band. Console mode slims this to
+   a one-line plate band (section 7).
+   ========================================================================== */
+
+#archive-footer {
+  margin-top: var(--archive-section-gap);
+  padding: var(--hairline);
+  background: var(--rule-strong);
+  clip-path: var(--corner-chamfer);
+}
+
+.archive-plate {
+  padding: var(--space-xl) var(--gutter) var(--space-lg);
+  background: var(--plate);
+  clip-path: var(--corner-chamfer);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.archive-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: var(--space-xl);
+  margin: 0;
+}
+
+.archive-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px; /* tap-target floor (the B3 convention) */
+  gap: var(--space-3xs);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome); /* 10.43:1 on plate — logged B1 */
+  text-decoration-line: underline;
+  text-decoration-color: rgba(229, 56, 59, 0);
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease-out;
+}
+/* Attribution diamonds: the inert hollow marker — these links leave the
+   monument, so they are not the active accent. */
+.archive-link::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border: var(--hairline) solid var(--chrome-dim); /* 5.32:1 on plate */
+  transform: rotate(45deg);
+}
+.archive-link:hover,
+.archive-link:focus-visible {
+  text-decoration-color: var(--crimson); /* 3.74:1 on plate (non-text) */
+}
+
+.archive-line {
+  margin: var(--space-sm) 0 0;
+  color: var(--chrome-dim); /* 5.32:1 on plate — logged B1 */
+}
+/* Short centered rule above the sign-off — plaque furniture. */
+.archive-line::before {
+  content: "";
+  display: block;
+  width: 3rem;
+  margin: 0 auto var(--space-sm);
+  border-top: var(--hairline) solid var(--rule-on-plate);
+}
+
+/* ==========================================================================
+   5. MOTION — quiet, CSS-only, double-gated (stacked entrances)
+   --------------------------------------------------------------------------
+   Channels: the individual `translate` property + opacity (compositor-
+   driven), plus paint-only box-shadow / text-decoration-color transitions
+   on intent. ZERO layout properties animated anywhere. The console's own
+   gesture (the 120ms swap fade) lives in section 7, equally gated.
+   ========================================================================== */
+
+/* One lintel rise on load — the wing's single entrance gesture (both
+   modes; killed under reduced motion below). */
+@media (prefers-reduced-motion: no-preference) {
+  #archive-head {
+    animation: archive-lintel-rise 0.7s var(--ease-ignite) both;
+  }
+
+  /* Stacked per-entry scroll reveals, scroll-driven: each plate rises as
+     it enters. Double-gated — @supports (engines without scroll-driven
+     animations never declare the offset at all) and the no-preference
+     query (reduced motion never runs it). Scoped to the stacked halls:
+     the console's promoted panels sit in the stage, outside these
+     selectors, so no reveal ever fires on a panel. */
+  @supports (animation-timeline: view()) {
+    html:not(.console-armed) #archive-main .family-member,
+    html:not(.console-armed) #archive-main .pipeline-stage,
+    html:not(.console-armed) #archive-main .hero {
+      animation: archive-entry-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 30%;
+    }
+  }
+}
+
+@keyframes archive-lintel-rise {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes archive-entry-rise {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* --- prefers-reduced-motion: the kill switch, belt and braces --------------
+   The gates above already keep every animation and transition away from a
+   reduced-motion visitor; this block re-states the kills for the intent
+   transitions and any engine that resolves the gates unusually. Every
+   state snaps; all content fully readable, nothing offset. */
+@media (prefers-reduced-motion: reduce) {
+  #archive-head,
+  #archive-main .family-member,
+  #archive-main .pipeline-stage,
+  #archive-main .hero,
+  html.console-armed .console-stage > [role="tabpanel"] {
+    animation: none;
+  }
+  #archive-main .family-member,
+  #archive-main .hero,
+  .archive-return-link,
+  .archive-link,
+  .rail-tab,
+  html.console-armed #archive-main {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   6. RESPONSIVE LADDER (stacked mode) — 1440 -> 1024 -> 768 -> 390 -> 320
+   --------------------------------------------------------------------------
+   The grids pack themselves (auto-fill floors at 340px / 400px, both
+   min()-capped to 100% so the 320 tier holds one full-width column with
+   zero horizontal overflow); the tiers below only tighten air, never
+   amputate anatomy. Every text container carries min-width: 0 and
+   overflow-wrap guards, so the data's long slugs wrap instead of
+   bursting a track.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .archive-links {
+    column-gap: var(--space-md);
+  }
+}
+
+@media (max-width: 560px) {
+  html:not(.console-armed) #archive-main .family-member,
+  html:not(.console-armed) #archive-main .hero {
+    padding: var(--space-md);
+  }
+  .archive-plate {
+    padding: var(--space-lg) var(--space-md);
+  }
+}
+
+@media (max-width: 360px) {
+  #archive-head {
+    padding-top: var(--space-md);
+    padding-bottom: var(--space-xs);
+  }
+  .archive-category {
+    margin-top: var(--space-xs);
+  }
+  #archive-main > section:first-child {
+    margin-top: var(--space-md);
+  }
+}
+
+/* ==========================================================================
+   7. THE CONSOLE — html.console-armed (the only door: js/skills-console.js)
+   --------------------------------------------------------------------------
+   The shell locks to the viewport (the page never scrolls in console
+   mode; the rail and the stage own their internal scroll). Mobile-first
+   here: the base block is the two-tier control + panel; the >=1024 block
+   is the side-by-side rail + stage. Everything is prefixed
+   html.console-armed so removing the class restores the stacked wall
+   wholesale.
+   ========================================================================== */
+
+/* --- 7.0 The shell --------------------------------------------------------- */
+
+html.console-armed body {
+  height: 100vh; /* pre-dvh engines */
+  height: 100dvh; /* the dynamic viewport: the console holds through
+                     mobile URL-bar collapse/expand */
+  overflow: hidden; /* the console never page-scrolls */
+  display: flex;
+  flex-direction: column;
+}
+
+html.console-armed #archive-main {
+  flex: 1 1 auto;
+  min-height: 0; /* lets the children shrink inside the locked shell */
+  display: flex;
+  flex-direction: column;
+}
+
+/* The S2 mounts keep the re-render contract but hold no console content:
+   the entries were promoted into the stage. */
+html.console-armed #archive-main > section {
+  display: none;
+}
+
+/* --- 7.1 The header band (compact lintel) ----------------------------------
+   The same three lines as the stacked lintel, seated on one hairline band:
+   back link left, wordmark + category centered, census right. */
+
+html.console-armed #archive-head {
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  column-gap: var(--space-sm);
+  padding: var(--space-2xs) var(--gutter);
+  text-align: center;
+  background: radial-gradient(
+    120% 140% at 50% 100%,
+    rgba(229, 56, 59, 0.06),
+    rgba(229, 56, 59, 0) 70%
+  );
+  border-bottom: var(--hairline) solid var(--rule-soft);
+}
+
+html.console-armed .archive-return {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  justify-self: start;
+}
+
+html.console-armed .archive-wordmark {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: clamp(1.125rem, 1rem + 0.9vw, 1.625rem);
+}
+
+html.console-armed .archive-category {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  max-width: none;
+  font-size: var(--size-micro);
+  letter-spacing: var(--track-readout);
+  color: var(--chrome-dim); /* 6.55:1 on ground — floor 4.5:1 */
+}
+
+html.console-armed .archive-census {
+  display: block;
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  justify-self: end;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-micro);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 6.55:1 on ground — floor 4.5:1 */
+}
+
+/* --- 7.2 The group bar (mobile two-tier control, tier one) -----------------
+   Three group buttons over the well, hairline seams between (the roster
+   band's joint technique). Desktop hides the bar — the rail shows every
+   group at once. */
+
+.console-groupbar {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--hairline);
+  background: var(--well);
+  border-bottom: var(--hairline) solid var(--rule-soft);
+  padding: 0 var(--gutter);
+}
+
+.console-group-button {
+  appearance: none;
+  border: 0;
+  min-height: 44px; /* tap-target floor (the B3 convention) */
+  padding: 0 var(--space-2xs);
+  background: var(--well);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--size-tag);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-caps-wide);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 6.11:1 on well — floor 4.5:1 */
+  cursor: pointer;
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.35); /* recessed seat */
+  transition: color 0.15s ease-out, background-color 0.15s ease-out;
+}
+.console-group-button:hover {
+  color: var(--chrome); /* 11.96:1 on well */
+}
+.console-group-button[aria-pressed="true"] {
+  background: var(--archive-seat); /* the lit seat — kin to the roster
+                                      lit chip (see header contrast) */
+  color: var(--chrome); /* ~9.6:1 over the tinted well */
+  box-shadow:
+    inset 0 2px 0 rgba(0, 0, 0, 0.35),
+    inset 0 -2px 0 var(--crimson); /* 4.28:1 on well (non-text) */
+}
+.console-group-button:disabled {
+  color: var(--chrome-dim); /* 6.11:1 — visible but inert (1.4.3
+                              inactive-component exception) */
+  cursor: default;
+  opacity: 0.55;
+}
+.console-group-button:focus-visible {
+  outline: 2px solid var(--crimson); /* 4.28:1 on well (non-text) */
+  outline-offset: -2px;
+}
+
+/* --- 7.3 The rail (tier two on mobile / the whole index on desktop) --------
+   The tablist: over the recessed well, one tab per entry. Base block is
+   the mobile chip row (only the ACTIVE group's chips render); the >=1024
+   block below is the full vertical index. */
+
+.console-rail {
+  flex: none;
+  background: var(--well);
+  border-bottom: var(--hairline) solid var(--rule-soft);
+}
+
+/* Only the selected entry's group shows its chip row; the others stay in
+   the DOM (the tabs, the outline h2s) but out of the way. */
+html.console-armed .rail-group {
+  display: none;
+}
+html.console-armed .rail-group.is-active {
+  display: block;
+}
+
+/* The group's h2 on the mobile tier: visually hidden (clip pattern), NOT
+   display:none — it stays in the accessibility tree so the heading
+   outline (h1 -> h2 -> h3) holds at every width. */
+html.console-armed .rail-group > .section-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.rail-tabs {
+  display: flex;
+  gap: var(--space-3xs);
+  padding: var(--space-3xs) var(--gutter);
+  overflow-x: auto; /* the chip row scrolls inside itself, never the page */
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
+
+/* The tab: a chip on mobile, a full row on desktop. Block display keeps
+   text-overflow live (ellipsis truncation is visual only — the full name
+   stays in the accessibility tree, and the panel shows it whole). */
+.rail-tab {
+  appearance: none;
+  position: relative;
+  display: block;
+  flex: none;
+  max-width: min(44vw, 20rem);
+  min-height: 44px; /* tap-target floor (the B3 convention) */
+  box-sizing: border-box;
+  padding: var(--space-2xs) var(--space-sm) var(--space-2xs) 2.2rem;
+  background: transparent;
+  border: var(--hairline) solid transparent;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-tag);
+  line-height: var(--leading-readout);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--chrome-dim); /* 6.11:1 on well — floor 4.5:1 */
+  cursor: pointer;
+  transition: color 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+/* The index marker seat: family tabs carry the graded autonomy diamond,
+   pipeline tabs the mono ordinal, hero tabs the hollow chrome marker. */
+.rail-tab::before {
+  content: "";
+  position: absolute;
+  left: var(--space-sm);
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border: var(--hairline) solid var(--chrome-dim); /* 6.11:1 on well */
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* Pipeline ordinals: the ol's order made visible on the tab (the stage
+   counter runs on the rail group's chip list). */
+.rail-group-pipeline .rail-tabs {
+  counter-reset: stage;
+}
+.rail-group-pipeline .rail-tab {
+  counter-increment: stage;
+  padding-left: 2.6rem;
+}
+.rail-group-pipeline .rail-tab::before {
+  content: counter(stage, decimal-leading-zero);
+  left: var(--space-2xs);
+  width: auto;
+  height: auto;
+  margin-top: 0;
+  border: 0;
+  transform: translateY(-50%);
+  font-size: var(--size-micro);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--track-readout);
+  color: var(--chrome-dim); /* 6.11:1 on well */
+}
+
+/* Family graded diamonds (the mode-chip system, rail-voiced). */
+.rail-tab[data-mode="autonomous"]::before,
+.rail-tab[data-mode="deadline-driven"]::before {
+  background: var(--crimson); /* 4.28:1 on well (non-text) */
+  border-color: var(--crimson);
+}
+.rail-tab[data-mode="mode-dependent"]::before {
+  border-color: var(--crimson); /* 4.28:1 on well (non-text) */
+}
+.rail-tab[data-mode="gated"]::before,
+.rail-tab[data-mode="delegated"]::before {
+  content: none; /* the human holds the gate: no diamond */
+}
+
+/* States: hover wakes the chrome; the selected tab takes the lit seat —
+   the roster lit-chip grammar (crimson tint, bold chrome, the solid
+   seat bar, the soft glow). */
+.rail-tab:hover {
+  color: var(--chrome); /* 11.96:1 on well */
+  background: rgba(201, 211, 221, 0.05);
+}
+.rail-tab.is-selected {
+  background: var(--archive-seat); /* ~9.6:1 for chrome text — header */
+  border-color: rgba(229, 56, 59, 0.38);
+  color: var(--chrome);
+  font-weight: var(--weight-bold);
+  box-shadow:
+    inset 0 -2px 0 var(--crimson), /* 4.28:1 on well (non-text) */
+    var(--glow-crimson-soft);
+}
+.rail-group-pipeline .rail-tab.is-selected::before {
+  color: var(--chrome); /* ~9.9:1 over the seat tint */
+}
+.rail-tab:focus-visible {
+  outline: 2px solid var(--crimson); /* 4.28:1 on well (non-text) */
+  outline-offset: -2px; /* drawn inside the row: never clipped by the
+                          rail's own scroll box */
+}
+
+/* An empty group's note rides the rail (the S2 empty-state, compacted):
+   the machine reporting a bounded state inside the index itself. */
+html.console-armed .rail-group-empty .empty-state {
+  max-width: none;
+  margin: 0;
+  padding: var(--space-2xs) var(--space-sm);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-align: left;
+  font-size: var(--size-micro);
+  color: var(--chrome-dim); /* 6.11:1 on well */
+}
+html.console-armed .rail-group-empty .empty-state::before {
+  margin: 0 var(--space-3xs) 0 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* --- 7.4 The stage — one detail panel at a time -----------------------------
+   The promoted entry on a plate: the spec-sheet treatment. The stage is
+   the scroll container (internal scroll only); the panel's stable
+   min-height (never below the stage box) is the CLS discipline — swapping
+   entries of different lengths can never resize the shell or shift the
+   page. */
+
+.console-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-sm);
+}
+
+html.console-armed .console-stage > [role="tabpanel"] {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-height: 100%; /* the stable floor: short entries still fill the
+                       stage; long entries scroll inside it */
+  max-width: 54rem;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-lg) var(--space-md);
+  background: var(--plate);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 211, 221, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px var(--rule-soft),
+    inset 0 -20px 30px -22px rgba(229, 56, 59, 0.25); /* the base ember,
+    calmer than the stacked hall — one focused record */
+}
+
+/* The hidden guard: the flex display above would override the UA's
+   [hidden] styling — restate it, or inactive panels would leak. */
+html.console-armed .console-stage > [role="tabpanel"][hidden] {
+  display: none;
+}
+
+/* The entry inside its panel wrapper (the wrapper exists because
+   <article>/<li> cannot legally carry role=tabpanel — see
+   js/skills-console.js): the entry stretches to fill the wrapper and
+   keeps the plate's internal rhythm, so the hero signature's
+   margin-top:auto still pins to the panel's foot. */
+html.console-armed .console-stage > [role="tabpanel"] > article,
+html.console-armed .console-stage > [role="tabpanel"] > li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  list-style: none; /* the promoted pipeline stage is no longer a list item */
+}
+
+/* The panel is a tab stop (tabindex=0): ring it on keyboard focus. */
+html.console-armed .console-stage > [role="tabpanel"]:focus-visible {
+  outline: 2px solid var(--crimson); /* 3.74:1 on plate (non-text) */
+  outline-offset: -2px;
+}
+
+/* Panel typography: every entry reads at its featured grade — the names
+   one step up from the stacked plates, standfirsts full-width. */
+html.console-armed .console-stage .family-name,
+html.console-armed .console-stage .pipeline-name {
+  font-size: clamp(1.375rem, 1.15rem + 0.9vw, 1.9375rem);
+}
+html.console-armed .console-stage .hero-name {
+  font-size: clamp(1.5rem, 1.2rem + 1.1vw, 2.1875rem);
+}
+html.console-armed .console-stage .family-essence,
+html.console-armed .console-stage .pipeline-role {
+  font-size: var(--size-body);
+  color: var(--chrome); /* 10.43:1 on plate — the panel standfirsts read
+                           at full register (the hero-lens voice) */
+}
+html.console-armed .console-stage .hero-signature {
+  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+}
+
+/* The swap: an opacity-only 120ms fade on the incoming panel — declared
+   ONLY outside prefers-reduced-motion (see the kill switch in section 5
+   for the belt-and-braces restatement). */
+@media (prefers-reduced-motion: no-preference) {
+  html.console-armed .console-stage > [role="tabpanel"]:not([hidden]) {
+    animation: console-swap-in 0.12s ease-out;
+  }
+}
+
+@keyframes console-swap-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- 7.5 The footer band (slim console close) ------------------------------- */
+
+html.console-armed #archive-footer {
+  flex: none;
+  margin-top: 0;
+  padding: 0;
+  background: var(--ground);
+  border-top: var(--hairline) solid var(--rule-soft);
+  clip-path: none;
+}
+
+html.console-armed .archive-plate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: var(--space-xl);
+  row-gap: var(--space-3xs);
+  padding: var(--space-3xs) var(--gutter);
+  background: none;
+  clip-path: none;
+  box-shadow: none;
+  text-align: center;
+}
+
+html.console-armed .archive-links {
+  margin: 0;
+  column-gap: var(--space-lg);
+}
+
+html.console-armed .archive-link {
+  min-height: 44px;
+}
+
+html.console-armed .archive-line {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-micro);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  color: var(--chrome-dim); /* 6.55:1 on ground — floor 4.5:1 */
+}
+/* No plaque rule in the slim band — the hairline above is the plate. */
+html.console-armed .archive-line::before {
+  content: none;
+}
+
+/* --- 7.6 The desktop console (>=1024): rail and stage share the viewport ----
+   The full vertical index: three wall-plate group labels + 27 compact
+   rows (24px minimum — the WCAG 2.5.8 AA floor; see the header note) so
+   the whole index stands in one 1440x900 viewport beside the panel. */
+
+@media (min-width: 1024px) {
+  html.console-armed #archive-main {
+    display: grid;
+    grid-template-columns: minmax(0, 21.5rem) minmax(0, 1fr);
+  }
+
+  /* The group bar is the mobile tier's control; the desktop rail shows
+     every group at once. */
+  .console-groupbar {
+    display: none;
+  }
+
+  html.console-armed .console-rail {
+    border-bottom: 0;
+    border-right: var(--hairline) solid var(--rule-soft);
+    overflow-y: auto; /* the index scrolls inside itself only when a short
+                         viewport demands it — at 1440x900 all 27 rows +
+                         three labels stand without it (the owner's
+                         zero-scroll default view); the page never does */
+    overscroll-behavior: contain;
+    padding: var(--space-2xs) 0 var(--space-2xs);
+  }
+
+  html.console-armed .rail-group {
+    display: block;
+    container: railgroup / inline-size; /* labels size against the rail */
+  }
+  html.console-armed .rail-group + .rail-group {
+    margin-top: var(--space-xs);
+  }
+
+  /* The group label, un-hidden and re-seated: the wing's wall-plate
+     inscription at index scale (Cinzel caps seated on a hairline running
+     to the rail's edge, the inert hollow diamond). */
+  html.console-armed .rail-group > .section-heading {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    margin: 0 var(--space-sm) var(--space-3xs);
+    padding: 0;
+    width: auto;
+    height: auto;
+    border: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    font-size: var(--size-entry);
+    font-size: clamp(0.9375rem, 5cqi + 0.3rem, 1.125rem);
+    line-height: var(--leading-title);
+    letter-spacing: var(--track-caps);
+    text-transform: uppercase;
+    color: var(--chrome); /* 11.96:1 on well — large-ish caps, floor 3:1 */
+    text-shadow: var(--engrave-text);
+  }
+  html.console-armed .rail-group > .section-heading::before {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border: var(--hairline) solid var(--chrome-dim); /* 6.11:1 on well */
+    transform: rotate(45deg);
+  }
+  html.console-armed .rail-group > .section-heading::after {
+    content: "";
+    flex: 1;
+    border-top: var(--hairline) solid var(--rule-soft);
+  }
+
+  html.console-armed .rail-tabs {
+    flex-direction: column;
+    gap: 0; /* hairline-density index rows: 24px each, flush joints */
+    padding: 0;
+    overflow: visible;
+  }
+
+  .rail-tab {
+    max-width: none;
+    min-height: 24px; /* WCAG 2.5.8 AA pointer floor — see header note */
+    padding: 2px var(--space-sm) 2px 2rem;
+    font-size: var(--size-tag);
+  }
+  .rail-group-pipeline .rail-tab {
+    padding-left: 2.4rem;
+  }
+
+  /* The seat bar moves to the row's head on the vertical index. */
+  .rail-tab.is-selected {
+    box-shadow:
+      inset 3px 0 0 var(--crimson), /* 4.28:1 on well (non-text) */
+      var(--glow-crimson-soft);
+  }
+
+  html.console-armed .console-stage {
+    padding: var(--space-md) var(--space-lg);
+  }
+}
+
+/* --- 7.7 Console responsive ladder — 1024 / 768 / 390 / 320 ------------------
+   Zero horizontal overflow at every tier: the shell is a locked column
+   (mobile) or a minmax(0,·) grid (desktop); chips cap at 44vw with
+   ellipsis; every text container keeps its min-width:0 + overflow-wrap
+   guards from the shared grammar. */
+
+@media (max-width: 1023.98px) {
+  /* The compact header band: wordmark + category centered, the way back
+     seated beneath them (44px), the census folded away — the category
+     line already carries the counts. */
+  html.console-armed #archive-head {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0;
+    padding: var(--space-2xs) var(--space-sm);
+  }
+  html.console-armed .archive-wordmark {
+    order: 1;
+    font-size: clamp(1.125rem, 1rem + 1.6vw, 1.5rem);
+  }
+  html.console-armed .archive-category {
+    order: 2;
+    margin-top: 2px;
+  }
+  html.console-armed .archive-return {
+    order: 3;
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: center;
+    margin-top: var(--space-3xs);
+  }
+  html.console-armed .archive-census {
+    display: none;
+  }
+
+  /* Compact panel rhythm on the narrow tiers: clamp done, air tightened,
+     anatomy untouched. */
+  html.console-armed .console-stage {
+    padding: var(--space-2xs);
+  }
+  html.console-armed .console-stage > [role="tabpanel"] {
+    padding: var(--space-md) var(--space-sm) var(--space-sm);
+  }
+  html.console-armed .console-stage > [role="tabpanel"] > article,
+  html.console-armed .console-stage > [role="tabpanel"] > li {
+    gap: var(--space-2xs);
+  }
+  html.console-armed .console-stage .field {
+    padding-top: var(--space-2xs);
+  }
+}
+
+@media (max-width: 360px) {
+  .rail-tab {
+    padding-left: 2.1rem;
+    font-size: var(--size-micro);
+  }
+  .rail-group-pipeline .rail-tab {
+    padding-left: 2.4rem;
+  }
+  .console-groupbar {
+    padding: 0 var(--space-sm);
+  }
+}
+
+/* --- console reduced-motion restatement (final word) ------------------------
+   Section 5's kill switch precedes the console section, so the console's
+   own intent transitions (rail tabs, group buttons) would out-rank it by
+   source order at equal specificity. This block restates the kills LAST:
+   under prefers-reduced-motion every console state snaps — zero animations,
+   zero transitions, all content fully visible at full opacity. */
+@media (prefers-reduced-motion: reduce) {
+  .rail-tab,
+  .console-group-button,
+  .archive-return-link,
+  .archive-link {
+    transition: none;
+  }
+  html.console-armed .console-stage > [role="tabpanel"] {
+    animation: none;
+  }
+}
