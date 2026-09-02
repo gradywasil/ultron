@@ -449,28 +449,57 @@ html {
   container: plate / inline-size; /* titles size against the plate, not vw */
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
-  padding: var(--space-md);
+  min-width: 0;
+  /* V5 L1 — THE OPERATING SCREEN. The plate is now the interaction SHELL:
+     an unclipped box carrying the hover/tilt transform, the outer ignition
+     glow (an outer box-shadow would be clipped by any clip-path here, so
+     the chamfer lives one layer down) and the container-query context.
+     All engraved metal moved to .plate-body below. */
+}
+
+/* The chamfered RIM layer: 1px of rule color under the field, both layers
+   clipped by the same cut-corner polygon — the counter band's own
+   technique, because a clip-path alone shears any border/inset-shadow off
+   the diagonals: this way the 1px hairline rim FOLLOWS the chamfer across
+   the SCREEN's corners (the image runs edge-to-edge under it). */
+.plate-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--hairline); /* the rim's own thickness                     */
+  background: var(--rule-strong);
+  clip-path: var(--corner-chamfer);
+  /* B5's allowed paint channel for the rim's ignition (rule -> crimson). */
+  transition: background-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The gunmetal FIELD inside the rim: bevels + the static crimson ember
+   pooled at the card's foot (the glint the FIRST VIEWPORT contract asks
+   for at the fold line), its own chamfer 1px inside the rim's. */
+.plate-frame {
+  position: relative; /* the screen pseudos + the arrival flash seat here   */
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
   background: var(--plate);
-  /* Raised-plate bevel (lit top lip, dark base) + hairline chrome rule +
-     the static crimson ember pooled at the base — the glint the FIRST
-     VIEWPORT contract asks for at the fold line. The rule is the B3
-     mortar line: plates are separated by rules over the shared backing
-     field, never floating cards. */
+  clip-path: var(--corner-chamfer);
   box-shadow:
     inset 0 1px 0 rgba(201, 211, 221, 0.08),
     inset 0 -1px 0 rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px var(--rule-soft),
     inset 0 -20px 30px -22px rgba(229, 56, 59, 0.55);
+  transition: box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Hover / keyboard presence RAISES the glow (surface brief: "hover raises
-   glow"): the chrome rule turns crimson, the base ember deepens, and the
-   outer glow lifts to the strong token. The 2px lift is a static state
-   change (translate only, never scale) — V2 deepened it one step for the
-   heavier image-led plates. The z-index lift lets the outer glow read
-   over neighboring plates; section 10 adds the screen's own frame
-   ignition on the same intent.
+   glow"): the shell lifts (transform only) and carries the strong OUTER
+   glow — unclipped, so it reads over neighboring plates — while the rim
+   ignites crimson and the frame's base ember deepens. The 2px lift + 1.02
+   scale is a static state change on the transform channel; section 16's
+   pointer tilt composes with it from inline style (fine pointers) and
+   yields back to this rule at rest.
    B5 wired: the transform + box-shadow transition lives in section 7
    (no layout properties; prefers-reduced-motion snaps it). */
 .plate:hover,
@@ -482,12 +511,18 @@ html {
      at the new plate size). Transform only (never a layout property);
      z-index: 1 already lets the lifted plate read over its neighbors. */
   transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--glow-crimson-strong);
+}
+.plate:hover .plate-body,
+.plate:focus-within .plate-body {
+  background: rgba(229, 56, 59, 0.5); /* the logged decorative ignition tint */
+}
+.plate:hover .plate-frame,
+.plate:focus-within .plate-frame {
   box-shadow:
     inset 0 1px 0 rgba(201, 211, 221, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px rgba(229, 56, 59, 0.5),
-    inset 0 -28px 44px -26px rgba(229, 56, 59, 0.62),
-    var(--glow-crimson-strong);
+    inset 0 -28px 44px -26px rgba(229, 56, 59, 0.62);
 }
 
 /* V2 — the lit-screen window (deleted the V1 dormant rule here; the full
@@ -550,16 +585,15 @@ html {
   color: var(--chrome-dim); /* 6.11:1 on well — B2 arithmetic, log entry */
 }
 
-/* Links row: seated behind a hairline base rule, pinned to the plate foot
-   so rows of plates share one datum line. The links carry their own
-   height (44px tap targets, B3) with centered content, so the rule sits
-   a clean half-gap above the labels. */
+/* Links row (V5 L1): docked into the info bar's head row, right of the
+   title — the links carry their own height (44px tap targets, B3), which
+   sets the head's floor. No base rule / foot pinning anymore: the head
+   wraps under the title on narrow tracks (the roster meta row's law). */
 .plate-links {
-  margin-top: auto;
+  margin: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--space-md);
-  border-top: var(--hairline) solid var(--rule-on-plate);
 }
 
 .plate-link {
@@ -1516,43 +1550,37 @@ html {
 /* --- The lit screen -------------------------------------------------------- */
 
 .plate-screen {
-  /* Full-bleed into the plate: negative margins cancel the plate's
-     --space-md padding on three sides, so the frame's own hairline
-     becomes the plate's visible edge up there. The screen sits FIRST in
-     the plate (js/render.js), so it owns the upper mass. */
-  margin: calc(-1 * var(--space-md)) calc(-1 * var(--space-md))
-    var(--space-2xs);
-  /* The unlit screen: recessed well glass with a shaded top lip (the
-     engraved dark-lip convention, read as screen glass) and a faint
-     chrome emission so the window reads ON even before the lazy bytes
-     land. Zero-offset halo alone would be decoration — the emission
-     rides a frame + inset shade system, it does not stand alone. */
+  /* V5 L1 — EDGE-TO-EDGE: the screen is the card's upper mass, let full
+     into the body's face — no padded frame, no negative-margin tricks
+     anymore. The body's chamfer clips its top corners and the body's
+     inset rule is the 1px rim ON the image edge. position:relative +
+     overflow:hidden seat the boot/sheen/inspection pseudos (section 16)
+     and clip the ambient parallax drift. The unlit well glass (the
+     screen's designed "off" state behind the lazy bytes) stays. */
+  position: relative;
+  overflow: hidden;
   background: var(--well);
-  border: var(--hairline) solid var(--rule-strong);
   box-shadow:
     inset 0 1px 0 rgba(0, 0, 0, 0.55),
     inset 0 -1px 0 rgba(201, 211, 221, 0.07),
     inset 0 0 22px rgba(0, 0, 0, 0.35),
     0 0 16px rgba(201, 211, 221, 0.05);
-  /* B5's budget: border-color + box-shadow only (paint properties, no
-     layout); intent-fired, matching the plate's own glow timing. */
-  transition:
-    border-color 0.25s ease-out,
-    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  /* B5's budget: box-shadow only (paint property, no layout);
+     intent-fired, matching the plate's own glow timing. */
+  transition: box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Frame ignition on intent: the chrome hairline goes crimson and the
-   emission ignites — the screen answers the same presence that raises
-   the plate's ember (section 3). Paint-only, snapped under
+/* Frame ignition on intent: the glass emission ignites crimson — the
+   screen answers the same presence that raises the plate's ember and the
+   body rim (sections 3/16). Paint-only, snapped under
    prefers-reduced-motion. */
-.plate:hover > .plate-screen,
-.plate:focus-within > .plate-screen {
-  border-color: rgba(229, 56, 59, 0.6); /* decorative tint — see header */
+.plate:hover .plate-screen,
+.plate:focus-within .plate-screen {
   box-shadow:
     inset 0 1px 0 rgba(0, 0, 0, 0.55),
     inset 0 -1px 0 rgba(201, 211, 221, 0.07),
     inset 0 0 22px rgba(229, 56, 59, 0.1),
-    0 0 22px rgba(229, 56, 59, 0.3);
+    0 0 22px rgba(229, 56, 59, 0.28);
 }
 
 /* The shot itself: the intrinsic width/height attrs (data-driven) hold
@@ -1571,19 +1599,20 @@ html {
    One pseudo-element draws the whole emblem: the well block in the
    screen's 1312:820 shape, plus a centered hollow crimson diamond as an
    authored inline-SVG background (geometry — the world's drawn-marker
-   system; data URI is same-document, zero requests). The block is in
-   flow (a flex child of the plate, first in source order), so it pushes
-   the anatomy down exactly like a real screen would. */
-.plate:not(:has(> .plate-screen))::before {
+   system; data URI is same-document, zero requests). V5 L1: the emblem
+   claims the SCREEN's own seat in the new anatomy — it is the body's
+   first flex child stand-in, edge-to-edge into the chamfer exactly where
+   a real screen would be (the staged rule in section 14a flexes it like
+   the screen). Engines without :has() keep a text-only card (graceful:
+   the emblem simply does not appear). */
+.plate-frame:not(:has(> .plate-screen))::before {
   content: "";
   display: block;
   aspect-ratio: 1312 / 820; /* the wall's screen grammar (all current shots) */
-  margin: 0 0 var(--space-xs);
   background-color: var(--well);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11'%3E%3Crect x='2.5' y='2.5' width='6' height='6' fill='none' stroke='%23e5383b' transform='rotate(45 5.5 5.5)'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
-  border: var(--hairline) solid var(--rule-on-plate);
   box-shadow:
     inset 0 1px 0 rgba(0, 0, 0, 0.55),
     inset 0 -1px 0 rgba(201, 211, 221, 0.07),
@@ -1954,14 +1983,24 @@ body.motion-armed .footer-plate {
 
 /* --- 3. The arrival flash ------------------------------------------------------- */
 
-/* The plate's ignition glow, flashed once as the rise lands. ::after is
-   free in both plate anatomies (the unlit-screen fallback uses ::before).
-   Opacity-only keyframes (compositor-driven); the flash peaks as the
-   0.6s rise settles (delay 0.45s, peak inside the ramp) and `forwards`
-   holds the clean rest. Arming-gated: no-JS / no-IO / reduced-motion
-   never see it (and the pseudo stays transparent forever — nothing is
-   hidden by it; it is pure light). */
+/* The plate's ignition glow, flashed once as the rise lands. V5 L1: the
+   flash is split across the two layers exactly like the hover state —
+   .plate::after (unclipped shell) carries the strong OUTER glow;
+   .plate-frame::after (chamfered field) carries the inset crimson ring +
+   the deepened base ember. Opacity-only keyframes (compositor-driven);
+   the flash peaks as the 0.6s rise settles (delay 0.45s, peak inside the
+   ramp) and `forwards` holds the clean rest. Arming-gated: no-JS / no-IO /
+   reduced-motion never see it (and the pseudos stay transparent forever —
+   nothing is hidden by them; they are pure light). */
 .plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: var(--glow-crimson-strong);
+}
+.plate-frame::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -1969,8 +2008,7 @@ body.motion-armed .footer-plate {
   pointer-events: none;
   box-shadow:
     inset 0 0 0 1px rgba(229, 56, 59, 0.5),
-    inset 0 -28px 44px -26px rgba(229, 56, 59, 0.6),
-    var(--glow-crimson-strong);
+    inset 0 -28px 44px -26px rgba(229, 56, 59, 0.6);
 }
 
 @keyframes plate-arrival-flash {
@@ -1979,7 +2017,8 @@ body.motion-armed .footer-plate {
   100% { opacity: 0; }
 }
 
-.wall-armed .plate.is-risen::after {
+.wall-armed .plate.is-risen::after,
+.wall-armed .plate.is-risen .plate-frame::after {
   animation: plate-arrival-flash 0.55s ease-out 0.45s forwards;
 }
 
@@ -2031,7 +2070,8 @@ body.motion-armed .footer-plate {
       0 1px 0 rgba(0, 0, 0, 0.55),
       0 0 28px rgba(201, 211, 221, 0.14); /* the static stamp, restored */
   }
-  .wall-armed .plate.is-risen::after {
+  .wall-armed .plate.is-risen::after,
+  .wall-armed .plate.is-risen .plate-frame::after {
     animation: none;
     opacity: 0;
   }
@@ -2214,29 +2254,27 @@ html.staged .stage-wall {
   margin-inline: auto;
 }
 
-/* The staged plate: compact anatomy (the stacked wall had a whole document
-   to breathe in; a stage has one viewport), same engraved language. The
-   plate STRETCHES to its track (fr rows resolve reliably for stretch, and
-   the row keeps its shared datum line); inside it the screen holds its
-   natural data ratio (flex: 0 1 auto — grow never, shrink when the track
-   is tight) and .plate-links' margin-top: auto pins the links to the foot
-   exactly as the stacked wall did. */
+/* The staged plate (V5 L1): the shell/body split carries the edge-to-edge
+   anatomy — no padding anywhere on the shell; the body stretches with the
+   track and the SCREEN is its giving element (flex 1 1 auto + min-height 0:
+   a generous track keeps the shot's own 1312:820 grammar from the inline
+   aspect-ratio, a tight track crops the screen and never the info bar). */
 .stage-wall .plate {
   min-width: 0;
-  gap: var(--space-2xs);
-  padding: 0 var(--space-xs) var(--space-xs); /* screen owns the top edge  */
+}
+
+.stage-wall .plate-frame {
+  min-width: 0;
 }
 
 /* The screen: the plate's giving element. Its box ratio comes from the
    data (inline aspect-ratio — 1312/820 today, per-entry if that ever
    changes), so an ample track keeps the shot's own grammar while a tight
-   track lets the screen shrink (never the anatomy). */
+   track lets the screen shrink (never the anatomy). Edge-to-edge: no
+   margins — the body's chamfer and rim own the edge. */
 .stage-wall .plate-screen {
-  position: relative;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-height: 0;
-  margin: 0 calc(-1 * var(--space-xs)) var(--space-2xs); /* full-bleed top */
-  overflow: hidden;
 }
 .stage-wall .plate-shot {
   position: absolute;
@@ -2248,8 +2286,8 @@ html.staged .stage-wall {
 
 /* The image-less fallback emblem flexes by the same law (its aspect-ratio
    is section 10's 1312/820). */
-.stage-wall .plate:not(:has(> .plate-screen))::before {
-  flex: 0 1 auto;
+.stage-wall .plate-frame:not(:has(> .plate-screen))::before {
+  flex: 1 1 auto;
   min-height: 0;
 }
 
@@ -2300,12 +2338,8 @@ html.staged .stage-wall {
   .stage-wall {
     --wall-max: 62rem;
   }
-  .stage-wall .plate {
-    gap: var(--space-3xs);
-    padding: 0 var(--space-2xs) var(--space-2xs);
-  }
-  .stage-wall .plate-screen {
-    margin: 0 calc(-1 * var(--space-2xs)) var(--space-3xs);
+  .stage-wall .plate-info {
+    padding: 0.375rem 0.5rem 0.5rem; /* tighter chrome on squat viewports */
   }
   #roster.stage .dedication {
     padding: var(--space-xs) var(--space-md) var(--space-sm);
@@ -2320,12 +2354,8 @@ html.staged .stage-wall {
 
 /* --- Phone wall pages (single column, two plates) ----------------------------- */
 @media (max-width: 639px) {
-  .stage-wall .plate {
-    gap: var(--space-3xs);
-    padding: 0 var(--space-2xs) var(--space-2xs);
-  }
-  .stage-wall .plate-screen {
-    margin: 0 calc(-1 * var(--space-2xs)) var(--space-3xs);
+  .stage-wall .plate-info {
+    padding: 0.375rem 0.5rem 0.5rem;
   }
   .stage-wall .plate-title {
     font-size: 1rem;
@@ -3081,5 +3111,302 @@ html.staged .stage-armed .dedication {
   html.staged .stage-armed .dedication:not(.is-risen) {
     translate: none;
     opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   16. V5 — THE LIVING WALL: operating screens (task L1, IRON MAN)
+   --------------------------------------------------------------------------
+   THE OWNER'S VERDICT this section answers: "still doesn't feel alive
+   enough ... the project cards in particular ... too bland." The cards stop
+   being styled rectangles and become OPERATING SCREENS — the screenshot is
+   the card (edge-to-edge into the chamfer, a chrome info bar docked below,
+   never text over image), and each screen BEHAVES like a machine's display:
+
+     16a. THE CHROME INFO BAR — the title on its own full-width line, the
+          one-liner in a two-line seat, then ONE foot instrument row (tags
+          left, LIVE/SOURCE right): solid plate field under the screen's
+          seam, never text over image.
+     16b. CRT BOOT — when a wall page assembles, every screen POWERS ON in
+          the 55ms ignition stagger: a thin crimson-chrome scanline flashes
+          at the screen's center while the image seats from a horizontal
+          hairline (clip-path inset band expanding to full frame, ~380ms).
+          The plate keeps its rise — the screen boots INSIDE the rising
+          plate. Re-strikes on every page re-entry (.is-risen semantics).
+     16c. POINTER TILT + SPECULAR SHEEN — fine pointers only: the card
+          tilts in 3D toward the cursor (rotateX/Y <= 5deg, per-card
+          perspective, spring-settled and rAF-throttled in js/motion.js —
+          the pointermove handler records coordinates and NOTHING else),
+          and a soft chrome specular highlight tracks the pointer across
+          the screen surface (a pre-painted radial on .plate-screen::after
+          moved by transform ONLY — compositor work, zero repaints). Touch:
+          no tilt, no sheen (media-gated), tap = the normal link. Keyboard
+          keeps the flat crimson ignition (:focus-within, section 3) —
+          equivalent attention, no tilt.
+     16d. AMBIENT LIFE — the wall never sits still:
+            - BREATHING: each screen's brightness modulates on its own slow
+              phase (6.5-10s periods, per-card --breath-dur/--breath-delay
+              seeded by js/render.js — desynced, never in lockstep).
+            - PARALLAX DRIFT: the shot itself drifts inside its window
+              (scale 1.06, 30-45s translate loops, alternate directions per
+              card) — windows into something, not posters.
+            - INSPECTION SCAN: every 4-7s ONE random VISIBLE screen takes a
+              brief crimson scan beam across its face (js/motion.js picks
+              it; 800ms, subtle) — the machine inspecting its records,
+              echoing the hero field's sweep.
+          All compositor-friendly (transform / opacity / filter / clip-path).
+          Ambient drift + breathing are gated on .plate-shot.is-live (the
+          img's load event, render.js) so a composited animation NEVER
+          forces the decode of a deferred below-fold shot — lazy-loading
+          holds under the living wall.
+
+   NEW text pairs introduced by L1: NONE — the info bar reuses the logged
+   matrix on the same plate field (title chrome/plate 10.43:1, one-liner
+   chrome-dim/plate 5.32:1, tags chrome-dim/well 6.11:1, LIVE chrome/plate
+   10.43:1, SOURCE chrome-dim/plate 5.32:1). No text is ever set on or over
+   the imagery — the screen's pseudos are decorative light (sheen <= 0.15
+   alpha chrome over dark shots; the boot line + inspection beam are
+   crimson alphas of the one accent, non-text, decorative machine state).
+
+   REDUCED MOTION — the kill block at the end of this section stops every
+   animation added here (belt and braces; js/motion.js never starts tilt or
+   inspection under the preference, and .wall-armed never lands): screens
+   render seated, the wall's life is its STATIC composition — the
+   edge-to-edge mass, the rim, the ember, the scanline texture.
+   ========================================================================== */
+
+/* --- 16a. The chrome info bar ------------------------------------------------ */
+
+.plate-info {
+  flex: 0 0 auto;          /* the screen above is the giving element        */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* rows left; the links row right-docks itself  */
+  gap: var(--space-3xs);
+  padding: 0.5rem 0.625rem 0.625rem;
+  background: var(--plate); /* solid plate field — NEVER text over image    */
+  border-top: var(--hairline) solid var(--rule-on-plate); /* the mounting
+                                       seam between screen glass and chrome */
+}
+
+/* The title: its OWN full-width line. Measured in the L1 harness — a title
+   sharing the row with the 44px links wraps at "BIOME GENERATOR"-class
+   widths, breaking the row's shared datum; full-width, the container-query
+   fit floor (section 3) holds trivially and every title but the longest
+   is one line. */
+.plate-info .plate-title {
+  min-width: 0; /* never stretch the bar — wrap is the narrow-track answer */
+}
+
+/* The links close the bar, RIGHT-DOCKED at the card's foot (margin-left:
+   auto on the row) — the breathing LIVE diamond sits at the instrument's
+   closing corner. Deterministic row stack: title / one-liner / tags /
+   links — every row's height is fixed by its own anatomy, so a row of
+   cards shares one datum line (the one variance left is a two-line title
+   on the longest names, the shipped wall's own behavior). */
+.plate-info .plate-links {
+  align-self: flex-end; /* the closing instrument line docks right (the
+                           column's cross axis — margin-left cannot do it) */
+}
+
+/* The one-liner takes a two-line seat so a row of cards keeps a shared
+   datum for the tags beneath it (screens end where the info bars begin). */
+.plate-info .plate-description {
+  min-height: 2.4em;
+}
+
+/* --- 16b. CRT boot: the scanline flash + the seating image ------------------- */
+
+/* The screen's MACHINE-LIGHT pseudo — ONE element, ONE fixed full-box
+   geometry (inset: 0), forever: everything it shows is painted LAYERS
+   (background gradients), never a box change — the inspection strike was
+   measured as a 0.0035 layout-shift while the band re-geometried the
+   pseudo (L1 harness); with a fixed box + transform/background-position
+   motion only, the strike costs zero (CLS 0, re-measured).
+   At rest it paints the BOOT LINE: a 2px crimson hairline at the screen's
+   vertical center inside a 12px soft crimson bloom + a 3px chrome core —
+   invisible (opacity 0) until the keyframes flash it the instant the
+   plate lands (.is-risen — the same class that fires the rise + arrival
+   flash; re-strikes with it on every page re-entry). */
+.plate-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0; /* FIXED geometry — see above                        */
+  background:
+    linear-gradient(90deg, rgba(229, 56, 59, 0.9), rgba(229, 56, 59, 0.9))
+      no-repeat 50% calc(50% - 1px) / 100% 2px, /* the line                    */
+    linear-gradient(180deg,
+      rgba(229, 56, 59, 0) 0%,
+      rgba(229, 56, 59, 0.55) 45%,
+      rgba(229, 56, 59, 0.85) 50%,
+      rgba(229, 56, 59, 0.55) 55%,
+      rgba(229, 56, 59, 0) 100%)
+      no-repeat 50% calc(50% - 6px) / 100% 12px, /* the bloom                    */
+    linear-gradient(90deg, rgba(201, 211, 221, 0.7), rgba(201, 211, 221, 0.7))
+      no-repeat 50% 50% / 100% 3px; /* the chrome core                 */
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes screen-boot-line {
+  0%   { opacity: 0;   transform: scaleX(0.08); }
+  18%  { opacity: 1;   transform: scaleX(1); }
+  55%  { opacity: 0.9; }
+  100% { opacity: 0;   transform: scaleX(1); }
+}
+
+/* The seating image: a horizontal hairline band expanding to the full
+   frame — clip-path only (compositor-friendly; the bytes stay as shot). */
+@keyframes screen-boot {
+  0%   { clip-path: inset(49.7% 0 49.7% 0); }
+  22%  { clip-path: inset(47% 0 47% 0); }
+  55%  { clip-path: inset(18% 0 18% 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+
+/* Boot fires when the plate lands. Ambient (16d) rides the same animation
+   list once the bytes are live — see the is-live split below: the boot
+   itself is allowed on a still-lazy shot (nothing forces its decode; the
+   line flashes over the unlit glass), while DRIFT/BREATHING stay gated. */
+.wall-armed .plate.is-risen .plate-screen::before {
+  animation: screen-boot-line 0.42s ease-out 0.05s both;
+}
+.wall-armed .plate.is-risen .plate-shot:not(.is-live) {
+  animation: screen-boot 0.38s var(--ease-ignite) both;
+}
+.wall-armed .plate.is-risen .plate-shot.is-live {
+  animation:
+    screen-boot 0.38s var(--ease-ignite) both,
+    screen-drift var(--drift-dur, 36s) ease-in-out infinite alternate,
+    screen-breathe var(--breath-dur, 8.5s) ease-in-out infinite;
+  animation-delay: 0s, var(--drift-delay, 0s), var(--breath-delay, 0s);
+}
+.wall-armed .plate-shot.is-live {
+  animation:
+    screen-drift var(--drift-dur, 36s) ease-in-out infinite alternate,
+    screen-breathe var(--breath-dur, 8.5s) ease-in-out infinite;
+  animation-delay: var(--drift-delay, 0s), var(--breath-delay, 0s);
+}
+
+/* The image-less emblem boots by the same law (the fallback screen). */
+.wall-armed .plate.is-risen .plate-frame:not(:has(> .plate-screen))::before {
+  animation: screen-boot 0.38s var(--ease-ignite) both;
+}
+
+/* --- 16c. Pointer tilt + specular sheen (fine pointers only) ----------------- */
+
+/* The sheen: a pre-painted chrome radial on an oversized pseudo (inset
+   -60%), moved by transform ONLY — the pointer's position arrives as
+   --sheen-tx/--sheen-ty (js/motion.js, same rAF as the tilt), so tracking
+   costs the compositor and nothing else. Painted over the IMAGE AREA only
+   (.plate-screen's own pseudo, clipped by its overflow), alpha-capped so
+   it reads as glass catching light, never as fog over content. Opacity
+   gates on real hover capability — touch taps never light it. */
+.plate-screen::after {
+  content: "";
+  position: absolute;
+  inset: -60%; /* the 2.2x box gives the translate room before any edge   */
+  background: radial-gradient(
+    17% 21% at 50% 50%,
+    rgba(201, 211, 221, 0.26),
+    rgba(201, 211, 221, 0.09) 45%,
+    rgba(201, 211, 221, 0) 68%
+  );
+  transform: translate3d(var(--sheen-tx, 0px), var(--sheen-ty, 0px), 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .plate-screen::after {
+    transition: opacity 0.3s ease-out;
+  }
+  .plate:hover .plate-screen::after {
+    opacity: 1;
+  }
+}
+
+/* While js/motion.js drives the card (fine pointer over it), the tilt owns
+   the transform channel from inline style: the CSS transform transition
+   must stand down (per-frame writes through a 0.15s transition would lag
+   the spring) while every other transition keeps its timing. is-tilting
+   also lifts the card over its neighbors for the tilt's duration. */
+.plate.is-tilting {
+  z-index: 1;
+  will-change: transform;
+}
+.plate.is-tilting,
+.wall-armed .plate.is-tilting {
+  transition:
+    translate var(--dur-rise) var(--ease-ignite),
+    opacity var(--dur-rise) var(--ease-ignite),
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* --- 16d. Ambient life: breathing, drift, the inspection scan ----------------- */
+
+/* BREATHING — each screen's brightness modulates on its own slow phase
+   (filter is compositor-driven; the amplitude is deliberately small: the
+   wall shimmers, it does not strobe). */
+@keyframes screen-breathe {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.055); }
+}
+
+/* PARALLAX DRIFT — the shot drifts inside its window on the alternate
+   loop (scale 1.06 covers the travel; the screen's overflow clips the
+   rest). Direction/period/phase are per-card custom properties seeded in
+   js/render.js: neighbors drift opposite ways, phases scatter — the wall
+   breathes organically, never in lockstep. */
+@keyframes screen-drift {
+  from { transform: translate3d(0, 0, 0) scale(1.06); }
+  to   { transform: translate3d(var(--drift-x, 10px), var(--drift-y, -6px), 0) scale(1.06); }
+}
+
+/* THE INSPECTION SCAN — one random visible screen, every 4-7s (the picker
+   is js/motion.js's; this is the beam it strikes). The SAME fixed-box
+   pseudo repaints as a 96px crimson band and CROSSES the screen by
+   background-position alone (paint-only — the L1-measured CLS fix): from
+   fully above the box to fully below it, so the crossing works at any
+   screen size. 800ms, subtle — the hero sweep's own restraint, spent on
+   one record at a time. */
+.plate-screen.is-scanned::before {
+  background: linear-gradient(
+    to bottom,
+    rgba(229, 56, 59, 0) 0%,
+    rgba(229, 56, 59, 0.1) 38%,
+    rgba(229, 56, 59, 0.5) 50%,
+    rgba(229, 56, 59, 0.1) 62%,
+    rgba(229, 56, 59, 0) 100%
+  ) no-repeat 0 -96px / 100% 96px;
+  opacity: 1;
+  animation: screen-inspect 0.8s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+
+@keyframes screen-inspect {
+  0%   { opacity: 0; background-position: 0 -96px; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { opacity: 0; background-position: 0 calc(100% + 96px); }
+}
+
+/* --- prefers-reduced-motion: total stillness, complete page ---------------------
+   js/motion.js never arms tilt or inspection under the preference (and a
+   live switch tears them down); .wall-armed never lands either — this
+   block is the belt-and-braces half. Screens render seated; the wall's
+   life is its static composition: the edge-to-edge mass, the chamfered
+   rim, the ember, the scanline texture. */
+@media (prefers-reduced-motion: reduce) {
+  .wall-armed .plate.is-risen .plate-screen::before,
+  .wall-armed .plate.is-risen .plate-shot:not(.is-live),
+  .wall-armed .plate.is-risen .plate-shot.is-live,
+  .wall-armed .plate-shot.is-live,
+  .wall-armed .plate.is-risen .plate-frame:not(:has(> .plate-screen))::before,
+  .plate-screen.is-scanned::before,
+  .plate.is-tilting {
+    animation: none;
+  }
+  .plate.is-tilting {
+    will-change: auto;
   }
 }

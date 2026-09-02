@@ -90,6 +90,34 @@
       holds a suppression window across every swap — one moment at a
       time, still hero-only.
 
+   7. POINTER TILT + SPECULAR SHEEN (V5 L1 — the living wall). Fine
+      pointers only ((hover: hover) and (pointer: fine), re-checked at
+      every card entry): the card tilts in 3D toward the cursor —
+      rotateX/rotateY capped at 5deg, per-card perspective(1100px) inside
+      the inline transform, the hover lift (-2px, 1.02) folded in so the
+      inline style SUPERSEDES the CSS hover transform while active and
+      yields it back cleanly at rest. A critically-damped spring runs in
+      ONE rAF loop; the pointermove handler records clientX/Y and nothing
+      else — every layout read (the card/screen rects) happens on card
+      ENTRY and at most once per frame AFTER a scroll/resize flag, never
+      inside a listener. The specular sheen is the same loop's second
+      write: two custom properties (--sheen-tx/--sheen-ty) translating a
+      pre-painted radial pseudo (css section 16c) — transform-only, so
+      pointer tracking costs the compositor. Touch never enters (pointer
+      type + hover-capability gates); keyboard keeps the flat crimson
+      :focus-within ignition — equivalent attention, no tilt. Reduced
+      motion: never enters, and a live switch tears any live tilt down.
+
+   8. THE INSPECTION SCAN (V5 L1). Every 4-7s ONE random VISIBLE screen
+      takes the beam: js/motion.js picks a .plate-screen whose box is in
+      the live viewport (a handful of getBoundingClientRect reads on a
+      4-7s cadence — never on any hot path) and strikes .is-scanned for
+      ~850ms; css section 16d restyles the boot-line pseudo into the
+      crimson crossing band. The machine inspecting its records — the
+      hero sweep's language, spent on one record at a time. Never under
+      reduced motion; stops (and clears) on a live switch; skipped while
+      the tab is hidden.
+
    PROGRESSIVE ENHANCEMENT — hard rules:
    - NO content is hidden awaiting CSS by default. The pre-rise offsets
      live ONLY under two arming classes this module adds — .wall-armed
@@ -702,6 +730,242 @@
     if (active) onStageSettle({ detail: { id: active } });
   }
 
+  /* --- 7. V5 L1 — POINTER TILT + SPECULAR SHEEN (fine pointers) ------------- */
+
+  var TILT_MAX_DEG = 5;      /* the sanctioned ceiling (rotateX/Y)           */
+  var TILT_VIEW = 550;       /* per-card perspective, px (inline transform).
+                                550 is tuned so a full-cap 5deg corner reads
+                                in a STATIC frame (~+9% card box, verified
+                                rect-growth in the L1 harness — 1100px was
+                                measurably correct but visually timid)      */
+  var TILT_LIFT = -2;        /* the hover lift, folded into the tilt          */
+  var TILT_SCALE = 1.02;     /* the hover scale, folded into the tilt         */
+  var TILT_Z = 18;           /* px toward the viewer while hovered — with the
+                                800px view this adds a visible ~2% growth on
+                                top of the rotation (the harness judged
+                                rotation alone too timid at this cap)        */
+  var TILT_SPRING = 0.16;    /* critically-damped lerp factor per frame       */
+  var tiltFineMQ = typeof window.matchMedia === "function"
+    ? window.matchMedia("(hover: hover) and (pointer: fine)")
+    : null;
+
+  var tiltPlate = null;      /* the card the pointer is over (or leaving)     */
+  var tiltScreen = null;     /* its .plate-screen (sheen target)              */
+  var tiltRect = null;       /* cached card box — NEVER read in listeners     */
+  var sheenRect = null;      /* cached screen box                             */
+  var tiltRaf = 0;
+  var tiltActive = false;    /* pointer is over the card                      */
+  var rectStale = false;     /* scroll/resize dirtied the cached rects        */
+  var tiltPX = 0, tiltPY = 0;              /* latest pointer position         */
+  var tiltCur = { x: 0, y: 0, lift: 0, scale: 1, z: 0, tx: 0, ty: 0 };
+  var tiltDst = { x: 0, y: 0, lift: 0, scale: 1, z: 0, tx: 0, ty: 0 };
+
+  function clamp1(v) { return v < -1 ? -1 : v > 1 ? 1 : v; }
+
+  /* The one writer: inline transform on the shell (supersedes the CSS hover
+     transform while active — same lift/scale values, so the handback at
+     rest is seamless) + the two sheen custom properties on the screen. */
+  function tiltWrite() {
+    var c = tiltCur;
+    tiltPlate.style.transform =
+      "perspective(" + TILT_VIEW + "px) rotateX(" + c.y.toFixed(3) +
+      "deg) rotateY(" + c.x.toFixed(3) + "deg) translateZ(" + c.z.toFixed(2) +
+      "px) translateY(" + c.lift.toFixed(2) + "px) scale(" + c.scale.toFixed(4) + ")";
+    if (tiltScreen) {
+      tiltScreen.style.setProperty("--sheen-tx", c.tx.toFixed(1) + "px");
+      tiltScreen.style.setProperty("--sheen-ty", c.ty.toFixed(1) + "px");
+    }
+  }
+
+  /* Spring toward the target; stop ticking when settled (staying armed
+     while the pointer rests on the card — a later move re-schedules), tear
+     down only once the pointer has LEFT and the spring is home. */
+  function tiltFrame() {
+    tiltRaf = 0;
+    if (!tiltPlate) return;
+    if (rectStale) {
+      tiltRect = tiltPlate.getBoundingClientRect();
+      sheenRect = tiltScreen ? tiltScreen.getBoundingClientRect() : null;
+      rectStale = false;
+    }
+    if (tiltActive) {
+      var nx = clamp1(((tiltPX - tiltRect.left) / tiltRect.width) * 2 - 1);
+      var ny = clamp1(((tiltPY - tiltRect.top) / tiltRect.height) * 2 - 1);
+      /* The screen ANGLES TOWARD the pointer (the machine attends): the
+         edge under the cursor comes forward — rotateY negative for +nx
+         (positive rotateY sends the right edge away), rotateX positive
+         for +ny (positive rotateX brings the bottom edge forward). The
+         ceiling is TILT_MAX_DEG either way. */
+      tiltDst.x = -nx * TILT_MAX_DEG;
+      tiltDst.y = ny * TILT_MAX_DEG;
+      tiltDst.lift = TILT_LIFT;
+      tiltDst.scale = TILT_SCALE;
+      tiltDst.z = TILT_Z;
+      if (sheenRect) {
+        tiltDst.tx = tiltPX - (sheenRect.left + sheenRect.width * 0.5);
+        tiltDst.ty = tiltPY - (sheenRect.top + sheenRect.height * 0.5);
+      }
+    } else {
+      tiltDst.x = 0; tiltDst.y = 0;
+      tiltDst.lift = 0; tiltDst.scale = 1;
+      tiltDst.z = 0; tiltDst.tx = 0; tiltDst.ty = 0;
+    }
+    var live = false, d;
+    d = tiltDst.x - tiltCur.x; tiltCur.x += d * TILT_SPRING; if (d > 0.004 || d < -0.004) live = true;
+    d = tiltDst.y - tiltCur.y; tiltCur.y += d * TILT_SPRING; if (d > 0.004 || d < -0.004) live = true;
+    d = tiltDst.lift - tiltCur.lift; tiltCur.lift += d * TILT_SPRING; if (d > 0.004 || d < -0.004) live = true;
+    d = tiltDst.scale - tiltCur.scale; tiltCur.scale += d * TILT_SPRING; if (d > 0.0004 || d < -0.0004) live = true;
+    d = tiltDst.z - tiltCur.z; tiltCur.z += d * TILT_SPRING; if (d > 0.004 || d < -0.004) live = true;
+    d = tiltDst.tx - tiltCur.tx; tiltCur.tx += d * TILT_SPRING; if (d > 0.05 || d < -0.05) live = true;
+    d = tiltDst.ty - tiltCur.ty; tiltCur.ty += d * TILT_SPRING; if (d > 0.05 || d < -0.05) live = true;
+    tiltWrite();
+    if (live) {
+      tiltRaf = window.requestAnimationFrame(tiltFrame);
+    } else if (!tiltActive) {
+      tiltTeardown();
+    }
+    /* settled + still hovering: rAF rests, the card stays armed — the next
+       pointermove re-schedules the frame. */
+  }
+
+  /* Hand the channels back to CSS (no jump: the spring is home at the
+     exact values the hover rule holds, or at identity with no hover). */
+  function tiltTeardown() {
+    if (tiltRaf) {
+      window.cancelAnimationFrame(tiltRaf);
+      tiltRaf = 0;
+    }
+    if (tiltPlate) {
+      tiltPlate.style.removeProperty("transform");
+      tiltPlate.classList.remove("is-tilting");
+    }
+    if (tiltScreen) {
+      tiltScreen.style.removeProperty("--sheen-tx");
+      tiltScreen.style.removeProperty("--sheen-ty");
+    }
+    tiltPlate = null;
+    tiltScreen = null;
+    tiltRect = null;
+    sheenRect = null;
+    tiltActive = false;
+  }
+
+  function tiltEligible(e) {
+    if (prefersReducedMotion()) return false;
+    if (!tiltFineMQ || !tiltFineMQ.matches) return false;
+    if (e && e.pointerType === "touch") return false;
+    return true;
+  }
+
+  function onTiltOver(e) {
+    if (!tiltEligible(e)) return;
+    var plate = e.target && e.target.closest
+      ? e.target.closest(".plate")
+      : null;
+    if (!plate || plate === tiltPlate) return;
+    if (tiltPlate) tiltTeardown(); /* the pointer jumped cards directly */
+    tiltPlate = plate;
+    tiltScreen = plate.querySelector(".plate-screen");
+    tiltRect = plate.getBoundingClientRect();           /* the one entry read */
+    sheenRect = tiltScreen ? tiltScreen.getBoundingClientRect() : null;
+    plate.classList.add("is-tilting");
+    tiltActive = true;
+    tiltPX = e.clientX;
+    tiltPY = e.clientY;
+    if (!tiltRaf) tiltRaf = window.requestAnimationFrame(tiltFrame);
+  }
+
+  function onTiltMove(e) {
+    /* The hot path: two number stores, nothing else. All math + writes live
+       in the rAF tick. */
+    if (!tiltPlate) return;
+    tiltPX = e.clientX;
+    tiltPY = e.clientY;
+    if (!tiltRaf) tiltRaf = window.requestAnimationFrame(tiltFrame);
+  }
+
+  function onTiltOut(e) {
+    if (!tiltPlate) return;
+    var plate = e.target && e.target.closest
+      ? e.target.closest(".plate")
+      : null;
+    if (plate !== tiltPlate) return;
+    var to = e.relatedTarget;
+    if (to && plate.contains(to)) return; /* still inside: an inner border */
+    tiltActive = false; /* spring home, then teardown */
+    if (!tiltRaf) tiltRaf = window.requestAnimationFrame(tiltFrame);
+  }
+
+  function initScreenTilt() {
+    document.addEventListener("pointerover", onTiltOver, { passive: true });
+    document.addEventListener("pointermove", onTiltMove, { passive: true });
+    document.addEventListener("pointerout", onTiltOut, { passive: true });
+    /* The console can scroll while a card is hovered: flag the cached rects
+     dirty and let the next frame re-read them (one read, off any listener
+     hot path). Resize dirties them the same way. */
+    window.addEventListener(
+      "scroll", function () { rectStale = true; }, { passive: true });
+    window.addEventListener(
+      "resize", function () { rectStale = true; }, { passive: true });
+  }
+
+  /* --- 8. V5 L1 — THE INSPECTION SCAN ---------------------------------------- */
+
+  var INSPECT_MIN_MS = 4000;   /* cadence band: one screen every 4-7s       */
+  var INSPECT_MAX_MS = 7000;
+  var INSPECT_HOLD_MS = 850;   /* the beam's class lifetime (800ms anim)    */
+  var inspectTimer = 0;
+  var inspectHold = 0;
+
+  /* Only screens actually in the live viewport take the beam (a handful of
+     rect reads on a 4-7s timer — never on any scroll/pointer path). */
+  function visiblePlateScreens() {
+    var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    var nodes = document.querySelectorAll(".plate-screen");
+    var out = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var r = nodes[i].getBoundingClientRect();
+      if (r.bottom > 40 && r.top < vh - 40 && r.width > 40) out.push(nodes[i]);
+    }
+    return out;
+  }
+
+  function strikeInspection() {
+    var screens = visiblePlateScreens();
+    if (screens.length === 0) return;
+    var screen = screens[Math.floor(Math.random() * screens.length)];
+    screen.classList.add("is-scanned");
+    if (inspectHold) clearTimeout(inspectHold);
+    inspectHold = setTimeout(function () {
+      inspectHold = 0;
+      screen.classList.remove("is-scanned");
+    }, INSPECT_HOLD_MS);
+  }
+
+  function scheduleInspection() {
+    if (inspectTimer) clearTimeout(inspectTimer);
+    inspectTimer = setTimeout(function () {
+      inspectTimer = 0;
+      if (prefersReducedMotion()) return; /* stays off after a live switch */
+      if (!document.hidden) strikeInspection();
+      scheduleInspection();
+    }, INSPECT_MIN_MS + Math.floor(Math.random() * (INSPECT_MAX_MS - INSPECT_MIN_MS)));
+  }
+
+  function stopInspection() {
+    if (inspectTimer) {
+      clearTimeout(inspectTimer);
+      inspectTimer = 0;
+    }
+    if (inspectHold) {
+      clearTimeout(inspectHold);
+      inspectHold = 0;
+    }
+    var scanned = document.querySelectorAll(".plate-screen.is-scanned");
+    for (var i = 0; i < scanned.length; i++) scanned[i].classList.remove("is-scanned");
+  }
+
   /* --- REDUCED MOTION / ANCIENT ENGINES --------------------------------------- */
 
   /* Remove the arming classes so every pre-rise offset vanishes (the
@@ -759,6 +1023,8 @@
     finalizeCounters(); /* counters snap to their final engraved values */
     igniteAllInstantly();
     disarmWordmarkGlitch(); /* V3-B: the wordmark settles to its clean stamp */
+    tiltTeardown(); /* V5 L1: any live tilt springs home and hands back     */
+    stopInspection(); /* V5 L1: the scanner stops, any beam is cleared      */
     if (igniteIO) igniteIO.disconnect();
     if (plateIO) plateIO.disconnect();
     if (revealIO) revealIO.disconnect();
@@ -797,6 +1063,11 @@
       initWallIgnition();
       initSectionReveals();
     }
+    /* V5 L1: the living wall's pointer life + the inspection scanner.
+       Tilt's own gates (fine pointer, preference) re-check at every card
+       entry; the scanner re-checks its preference on every tick. */
+    initScreenTilt();
+    scheduleInspection();
     /* V3-B fallback arm: if the counter band never counts (degraded
        stats), the wordmark still learns to glitch — the power-on that
        gates it is the field's natural first pass (~1.6s + 3.2s), so

@@ -158,7 +158,7 @@
      none (the loader strips wrong-type values; this guard also covers a
      renderer handed unvalidated data — ULTRON_RENDER re-runs, test
      copies, etc.). The wrapper is css/styles.css section 10's styling
-     hook for the lit-screen framing (frame, unlit well, ignition); the
+     hook for the lit-screen framing (unlit well, ignition); the
      img carries loading="lazy" + decoding="async" (below-fold screens
      never block) and the data-provided intrinsic width/height
      attributes so the browser reserves the box before the bytes arrive —
@@ -169,18 +169,26 @@
      the same data dims, the universal 1312/820 grammar when absent) — in
      the staged wall (styles.css section 14a) the screen is the plate's
      flexible element, so its box ratio must come from data for the
-     natural-height plate to reserve the exact box. */
+     natural-height plate to reserve the exact box.
+     V5 L1: the img gains the .is-live class the moment its bytes are in
+     (load event, or already-complete at build time). Ambient screen life
+     (parallax drift + breathing — styles.css section 16) is gated on
+     that class so a composited animation NEVER forces the decode of a
+     deferred below-fold shot: the wall's lazy-loading contract holds
+     under the living wall. */
   function plateShot(build) {
     if (typeof build.image !== "string" || build.image.trim() === "") return null;
     function dim(value) {
       return typeof value === "number" && isFinite(value) && value > 0 && Math.floor(value) === value;
     }
+    function markLive() { img.classList.add("is-live"); }
     var img = document.createElement("img");
     img.className = "plate-shot";
     img.src = build.image;
     img.alt = build.title + " — experiment screenshot";
     img.loading = "lazy";
     img.decoding = "async";
+    img.addEventListener("load", markLive);
     var w = dim(build.imageWidth) ? build.imageWidth : 1312;
     var h = dim(build.imageHeight) ? build.imageHeight : 820;
     img.setAttribute("width", String(w));
@@ -188,6 +196,10 @@
     var screen = el("div", "plate-screen");
     screen.style.aspectRatio = w + " / " + h;
     screen.appendChild(img);
+    /* Cache hits can settle between src assignment and this line's
+       listener: the complete check closes the race (a second load event
+       never hurts; the class set is idempotent). */
+    if (img.complete && img.naturalWidth > 0) markLive();
     return screen;
   }
 
@@ -307,33 +319,75 @@
   /* #wall — one article.plate per valid build, in data order. A build with
      an unusable url/sourceUrl still renders its plate; only that link is
      omitted (the loader already rejects such entries — this is the
-     per-plate safety net, so a plate can never lose its whole body). */
-  function buildPlate(build) {
+     per-plate safety net, so a plate can never lose its whole body).
+     V5 L1 — THE OPERATING SCREEN anatomy. The card is no longer a padded
+     nameplate holding an inset thumbnail: the SCREEN is the card. The
+     plate is a three-layer instrument:
+       article.plate            the interaction shell — hover/tilt transform,
+                                the outer ignition glow, the container-query
+                                context (styles.css sections 3/16; unclipped
+                                so the outer glow reads over neighbors)
+         div.plate-body         the chamfered RIM layer — 1px of rule color
+                                under the field, both clipped by the same
+                                cut-corner polygon, so the hairline rim
+                                FOLLOWS the chamfer across the screen's
+                                corners (the counter band's own technique;
+                                a clip-path alone would cut the rim off the
+                                diagonals)
+           div.plate-frame      the gunmetal field — bevels, base ember
+             div.plate-screen   the image, edge-to-edge: no padded frame,
+                                the chamfer cuts its corners, the CRT boot /
+                                sheen / inspection pseudos live here
+             div.plate-info     the chrome info bar — solid plate field,
+                                NEVER text over image: the title on its own
+                                full-width line (the container-query fit
+                                floor holds trivially), the one-liner in a
+                                two-line seat, then ONE instrument row —
+                                tags left, LIVE/SOURCE right (measured: a
+                                title sharing a row with the links wraps
+                                at "BIOME GENERATOR"-class widths, breaking
+                                the row datum; the foot row is consistent
+                                at every width — the judged variant)
+     `index` seeds the ambient desync (styles.css section 16): drift direction
+     alternates per card, breathing phase/duration/drift period are unique per
+     card, so the wall never shimmers in lockstep. Pure inline custom
+     properties — the animations themselves stay CSS and reduced-motion-gated. */
+  function buildPlate(build, index) {
+    var i = index || 0;
     var plate = el("article", "plate");
     plate.id = "plate-" + build.id;
     plate.setAttribute("data-build", build.id);
 
-    /* V2: the lit screen, FIRST in the plate — the redesign reads
-       image-first (css/styles.css section 10 frames it). plateShot()
-       returns the wrapper; an entry without a usable image gets
-       nothing here: the plate below is the styled fallback (css
-       section 10's :has()-gated unlit-screen emblem; engines without
-       :has() keep the v1 anatomy). */
+    var body = el("div", "plate-body");
+    var frame = el("div", "plate-frame");
+
+    /* The lit screen, FIRST in the frame — the screen IS the card's upper
+       mass now, full-bleed to the chamfer (css section 10/16). An entry
+       without a usable image gets nothing here: the frame below renders the
+       unlit-screen emblem in the screen's own flex seat (the :has()-gated
+       pseudo; engines without :has() keep a text-only card). */
     var shot = plateShot(build);
     if (shot !== null) {
-      plate.appendChild(shot);
+      frame.appendChild(shot);
     }
 
-    /* D1: the plate title is an h3 under the wall's h2 (heading system,
-       see sectionHeading above; resolves A3 deviation #5). */
-    plate.appendChild(el("h3", "plate-title", build.title));
-    plate.appendChild(el("p", "plate-description", build.description));
+    /* The chrome info bar — DETERMINISTIC ROW STACK (the L1 harness judged
+       every share-a-row variant: a title beside the links wraps at
+       "BIOME GENERATOR" widths, tags beside the links wrap at
+       "BROWSER TOOL" widths — any sharing breaks the row's shared datum by
+       data accident). Rows: the title (h3 under the wall's h2) on its own
+       full-width line (the container-query fit floor holds trivially), the
+       one-liner in a two-line seat, the tags, then the 44px links
+       right-docked at the foot — one fixed anatomy at every width. */
+    var info = el("div", "plate-info");
+    info.appendChild(el("h3", "plate-title", build.title));
+    info.appendChild(el("p", "plate-description", build.description));
 
     var tags = el("ul", "plate-tags");
     for (var t = 0; t < build.tags.length; t++) {
       tags.appendChild(el("li", "plate-tag", build.tags[t]));
     }
-    plate.appendChild(tags);
+    info.appendChild(tags);
 
     var links = el("p", "plate-links");
     if (isHttpUrl(build.url)) {
@@ -347,8 +401,25 @@
       ));
     }
     if (links.firstChild !== null) {
-      plate.appendChild(links);
+      info.appendChild(links);
     }
+
+    frame.appendChild(info);
+    body.appendChild(frame);
+    plate.appendChild(body);
+
+    /* Ambient desync seeds (V5 L1; consumed by styles.css section 16's
+       drift/breathe animations on .plate-shot). Direction alternates by
+       index so neighboring screens drift opposite ways; periods/phases are
+       per-card rolls so the wall breathes organically, never in lockstep. */
+    plate.style.setProperty("--drift-x",
+      ((i % 2 === 0 ? 1 : -1) * (9 + Math.random() * 6)).toFixed(1) + "px");
+    plate.style.setProperty("--drift-y",
+      (((i + 1) % 2 === 0 ? 1 : -1) * (5 + Math.random() * 4)).toFixed(1) + "px");
+    plate.style.setProperty("--drift-dur", (30 + Math.random() * 15).toFixed(1) + "s");
+    plate.style.setProperty("--drift-delay", (-Math.random() * 40).toFixed(1) + "s");
+    plate.style.setProperty("--breath-dur", (6.5 + Math.random() * 3.5).toFixed(2) + "s");
+    plate.style.setProperty("--breath-delay", (-Math.random() * 10).toFixed(2) + "s");
     return plate;
   }
 
@@ -468,7 +539,7 @@
     var pages = [];
     for (var i = 0; i < builds.length; i++) {
       var page = el("div", "wall-pager-page");
-      page.appendChild(buildPlate(builds[i]));
+      page.appendChild(buildPlate(builds[i], i)); /* V5 L1: index seeds desync */
       pager.appendChild(page);
       pages.push(page);
     }
@@ -641,7 +712,7 @@
       grid.style.gridTemplateColumns = "repeat(" + cols + ", minmax(0, 1fr))";
       grid.style.gridTemplateRows = "repeat(" + rows + ", minmax(0, 1fr))";
       for (var p = 0; p < page.length; p++) {
-        grid.appendChild(buildPlate(page[p]));
+        grid.appendChild(buildPlate(page[p], consumed + p)); /* V5 L1: wall-wide desync index */
       }
       section.appendChild(grid);
       consumed += page.length;
